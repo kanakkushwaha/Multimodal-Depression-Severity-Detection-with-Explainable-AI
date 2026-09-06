@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assessment — moodcompiler</title>
+  <link rel="icon" type="image/png" href="assets/logo/logo.png" />
+  <!-- Premium Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    /* 1. Canvas at z-index: 0 (Above body color, right behind UI) */
+    #emotional-signal-canvas {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      pointer-events: none !important;
+      z-index: 0 !important;
+    }
+
+    /* 2. Soft Focus Vignette */
+    .assessment-focus-vignette {
+      position: fixed !important;
+      inset: 0 !important;
+      pointer-events: none !important;
+      z-index: 1 !important;
+      background: radial-gradient(ellipse at 50% 45%, rgba(11, 19, 29, 0.35) 0%, rgba(7, 14, 23, 0.78) 100%) !important;
+      backdrop-filter: blur(1px) !important;
+    }
+
+    /* 3. Navigation Bar Above Animation */
+    .navbar {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 100 !important;
+    }
+
+    /* 4. Assessment UI Floating Above Animation */
+    .assessment-section {
+      position: relative !important;
+      z-index: 10 !important;
+      padding: 3rem 1.5rem 5rem !important;
+    }
+
+    .assessment-container {
+      max-width: 860px !important;
+      margin: 0 auto !important;
+    }
+
+    .step-header {
+      text-align: center !important;
+      margin-bottom: 2.2rem !important;
+    }
+
+    .step-header h2 {
+      font-size: clamp(2rem, 4vw, 2.7rem) !important;
+      font-weight: 750 !important;
+      letter-spacing: -0.04em !important;
+      margin-top: 0.8rem !important;
+      margin-bottom: 0.6rem !important;
+      color: #f8f4eb !important;
+    }
+
+    .step-desc {
+      max-width: 660px !important;
+      margin: 0 auto !important;
+      color: #b9c4cc !important;
+      font-size: 0.98rem !important;
+      line-height: 1.6 !important;
+    }
+
+    /* 5. Frosted Glass Wizard Card (Translucent so 3D waves show through) */
+    .wizard-card {
+      background: linear-gradient(145deg, rgba(23, 38, 53, 0.72), rgba(12, 22, 33, 0.85)) !important;
+      border: 1px solid rgba(231, 213, 172, 0.22) !important;
+      border-radius: 24px !important;
+      padding: 2.8rem 2.4rem !important;
+      box-shadow: 0 28px 60px rgba(2, 8, 14, 0.65) !important;
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px) !important;
+    }
+
+    .input-controls-top {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .input-label {
+      font-size: 0.92rem !important;
+      font-weight: 600 !important;
+      color: #f6d99d !important;
+      letter-spacing: 0.02em !important;
+    }
+
+    .quick-tools {
+      display: flex !important;
+      gap: 0.6rem !important;
+    }
+
+    .tool-btn {
+      background: rgba(229, 189, 115, 0.1) !important;
+      border: 1px solid rgba(229, 189, 115, 0.3) !important;
+      color: #f6d99d !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 0.8rem !important;
+      font-weight: 600 !important;
+      padding: 0.35rem 0.85rem !important;
+      border-radius: 999px !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .tool-btn:hover {
+      background: rgba(229, 189, 115, 0.22) !important;
+      border-color: #e5bd73 !important;
+      transform: translateY(-1px) !important;
+    }
+
+    .tool-btn-clear {
+      color: #82919e !important;
+      border-color: rgba(231, 213, 172, 0.16) !important;
+      background: transparent !important;
+    }
+
+    .tool-btn-clear:hover {
+      color: #f8f4eb !important;
+      border-color: #b9c4cc !important;
+    }
+
+    .text-input-field {
+      width: 100% !important;
+      background: rgba(8, 15, 24, 0.85) !important;
+      border: 1px solid rgba(231, 213, 172, 0.25) !important;
+      border-radius: 16px !important;
+      padding: 1.2rem 1.4rem !important;
+      color: #f8f4eb !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 1.02rem !important;
+      line-height: 1.65 !important;
+      resize: vertical !important;
+      min-height: 160px !important;
+      outline: none !important;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+      transition: all 0.25s ease !important;
+    }
+
+    .text-input-field:focus {
+      border-color: #e5bd73 !important;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(229, 189, 115, 0.2) !important;
+    }
+
+    .text-input-field::placeholder {
+      color: #788998 !important;
+      font-size: 0.95rem !important;
+    }
+
+    .input-meta-bar {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-top: 0.75rem !important;
+      font-size: 0.8rem !important;
+      color: #82919e !important;
+      font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    .step-actions {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-top: 2.4rem !important;
+      padding-top: 1.6rem !important;
+      border-top: 1px solid rgba(231, 213, 172, 0.16) !important;
+    }
+
+    /* ── Mobile Responsiveness ── */
+    @media (max-width: 680px) {
+      /* Hide stepper text, shrink nav */
+      .nav-capsule {
+        display: none !important;
+      }
+
+      .assessment-section {
+        padding: 1.5rem 1rem 4rem !important;
+      }
+
+      .wizard-card {
+        padding: 1.6rem 1.2rem !important;
+        border-radius: 18px !important;
+      }
+
+      .step-header h2 {
+        font-size: 1.7rem !important;
+      }
+
+      .input-controls-top {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.8rem !important;
+      }
+
+      .quick-tools {
+        width: 100% !important;
+      }
+
+      .tool-btn {
+        flex: 1 !important;
+        text-align: center !important;
+      }
+
+      /* Sensors grid — 1 column on mobile */
+      .sensors-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .step-actions {
+        flex-direction: column !important;
+        gap: 0.8rem !important;
+      }
+
+      .step-actions .btn {
+        width: 100% !important;
+        text-align: center !important;
+      }
+
+      /* Pipeline canvas step */
+      .pipeline-container {
+        height: 80vh !important;
+        min-height: 480px !important;
+        justify-content: center !important;
+        align-items: flex-end !important;
+      }
+
+      #insight-card-container {
+        margin: 0 1rem 1.5rem !important;
+        max-width: 100% !important;
+      }
+
+      /* Review grid */
+      .review-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .brand-name {
+        display: none !important;
+      }
+
+      .step-header h2 {
+        font-size: 1.45rem !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D Living Background Canvas & Focus Zone -->
+  <canvas id="emotional-signal-canvas"></canvas>
+  <div class="assessment-focus-vignette"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand">
+        <div class="brand-logo-frame">
+          <img src="assets/logo/logo.png" alt="moodcompiler logo" class="brand-logo" />
+        </div>
+        <span class="brand-name">moodcompiler</span>
+      </a>
+      
+      <!-- Stepper Navigation Pipeline -->
+      <div class="nav-capsule" style="font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.05em;">
+        <span class="step-badge active" id="step-badge-1">01 LANGUAGE</span>
+        <span class="nav-dot" style="opacity: 0.4;">—</span>
+        <span class="step-badge" id="step-badge-2">02 PHYSIOLOGY</span>
+        <span class="nav-dot" style="opacity: 0.4;">—</span>
+        <span class="step-badge" id="step-badge-3">03 SYNTHESIS</span>
+      </div>
+
+      <div class="nav-actions">
+        <a href="index.html" class="btn btn-secondary" style="padding: 0.52rem 1.15rem; font-size: 0.84rem;">← Back Home</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Assessment Main Wizard Container -->
+  <main class="assessment-section">
+    <div class="assessment-container">
+
+      <!-- ================= STEP 1: LINGUISTIC SIGNAL ================= -->
+      <div class="wizard-step active" id="step-1">
+        <div class="step-header">
+          <div class="badge">Modality 01 • Linguistic Biomarkers</div>
+          <h2>Linguistic Signal Context</h2>
+          <p class="step-desc">
+            Provide a conversational excerpt or personal reflection. The language transformer analyzes linguistic context, sentiment depth, and affective tone to establish an initial emotional baseline.
+          </p>
+        </div>
+
+        <div class="card wizard-card">
+          <div class="input-controls-top" style="flex-direction: column; align-items: flex-start; gap: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <label for="social-text" class="input-label" style="font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                [ LINGUISTIC SIGNAL INPUT ]
+              </label>
+              <button type="button" class="tool-btn tool-btn-clear" id="btn-clear-text" style="font-family: var(--font-mono); text-transform: uppercase; font-size: 0.7rem;">
+                CLEAR SIGNAL
+              </button>
+            </div>
+
+            <!-- Quick Examiner Sample Pills -->
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; width: 100%; position: relative; z-index: 20;">
+              <span style="font-family: var(--font-mono); font-size: 0.72rem; color: #82919e; margin-right: 0.3rem;">EXAMINER PRESETS:</span>
+              <button type="button" class="tool-btn" onclick="loadSampleDirect('normal')" style="font-family: var(--font-mono); font-size: 0.7rem; border-color: rgba(100,184,173,0.4); color: var(--teal); cursor: pointer; position: relative; z-index: 30;">
+                🌿 Normal / Healthy
+              </button>
+              <button type="button" class="tool-btn" onclick="loadSampleDirect('mild')" style="font-family: var(--font-mono); font-size: 0.7rem; border-color: rgba(139,196,184,0.4); color: #8bc4b8; cursor: pointer; position: relative; z-index: 30;">
+                ⛅ Mild Stress
+              </button>
+              <button type="button" class="tool-btn" onclick="loadSampleDirect('moderate')" style="font-family: var(--font-mono); font-size: 0.7rem; border-color: rgba(229,189,115,0.4); color: var(--gold); cursor: pointer; position: relative; z-index: 30;">
+                🌧️ Moderate Load
+              </button>
+              <button type="button" class="tool-btn" onclick="loadSampleDirect('severe')" style="font-family: var(--font-mono); font-size: 0.7rem; border-color: rgba(196,136,160,0.4); color: #c488a0; cursor: pointer; position: relative; z-index: 30;">
+                ⛈️ Severe Distress
+              </button>
+            </div>
+          </div>
+
+          <script>
+            function loadSampleDirect(type) {
+              var samples = {
+                normal: "Today was a productive and balanced day. I went for a morning walk, completed my tasks without excessive anxiety, and feel optimistic about the coming week.",
+                mild: "Feeling a bit worn down and tired this week. The workload is noticeable and I am finding it slightly difficult to unwind in the evenings, but still managing daily routines.",
+                moderate: "Everything feels noticeably heavy lately. I wake up unrefreshed no matter how long I sleep, disconnected from my usual hobbies, and struggle to find joy in everyday things.",
+                severe: "Honestly, everything just feels completely exhausted and empty. Getting out of bed takes immense effort. I feel an overwhelming sense of hopelessness and detached from everyone."
+              };
+              var area = document.getElementById('social-text');
+              if (area && samples[type]) {
+                area.value = samples[type];
+                area.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+            }
+          </script>
+
+          <!-- Signal Status Visualizer -->
+          <div id="signal-status-indicator" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--teal); margin-bottom: 0.8rem; height: 16px; opacity: 0; transition: opacity 0.3s ease;">
+            SIGNAL CAPTURE ● ○ ○ ○ ○
+          </div>
+
+          <textarea 
+            id="social-text" 
+            class="text-input-field" 
+            rows="6" 
+            placeholder="Awaiting text input... (e.g. 'Lately I feel completely exhausted, finding it hard to get out of bed...')"
+            maxlength="1500"
+          ></textarea>
+
+          <div class="input-meta-bar">
+            <span class="char-count" id="char-count">0 / 1500 <span style="opacity: 0.5;">SIGNAL LENGTH</span></span>
+            <span class="validation-tip" id="text-validation-msg" style="color: var(--teal);">System Ready. Waiting for input...</span>
+          </div>
+
+          <div class="step-actions">
+            <div></div> <!-- Spacer -->
+            <button type="button" class="btn btn-hero" id="btn-to-step-2">INITIALIZE PHYSIOLOGY CAPTURE →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= STEP 2: WEARABLE PHYSIOLOGY ================= -->
+      <div class="wizard-step" id="step-2" style="display: none;">
+        <div class="step-header">
+          <div class="badge">Modality 02 • Wearable Biosignals</div>
+          <h2>Physiological & Behavioral Signals</h2>
+          <p class="step-desc">
+            Simulated wearable sensor readings. Adjust physiological vitals, sleep patterns, and activity biomarkers to model different patient profiles.
+          </p>
+        </div>
+
+        <div class="card wizard-card">
+          <div class="preset-selector-bar">
+            <span class="preset-label">Quick Presets:</span>
+            <button type="button" class="preset-pill" id="preset-calm">Healthy / Baseline</button>
+            <button type="button" class="preset-pill" id="preset-stressed">High Risk / Dysregulated</button>
+          </div>
+
+          <!-- Sensor Sliders Grid -->
+          <div class="sensors-grid">
+
+            <!-- Heart Rate -->
+            <div class="sensor-control">
+              <div class="sensor-header">
+                <span class="sensor-title">❤️ Heart Rate</span>
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="number" class="sensor-num-input" id="num-hr" min="45" max="150" value="74" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
+                  <span class="sensor-value" id="val-hr" style="font-size: 0.75rem; color: #82919e;"><small>bpm</small></span>
+                </div>
+              </div>
+              <input type="range" class="range-slider" id="input-hr" min="45" max="150" value="74" />
+              <div class="sensor-scale"><span>45 bpm</span><span>150 bpm</span></div>
+            </div>
+
+            <!-- HRV -->
+            <div class="sensor-control">
+              <div class="sensor-header">
+                <span class="sensor-title">💓 HRV (ms)</span>
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="number" class="sensor-num-input" id="num-hrv" min="10" max="80" value="40" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
+                  <span class="sensor-value" id="val-hrv" style="font-size: 0.75rem; color: #82919e;"><small>ms</small></span>
+                </div>
+              </div>
+              <input type="range" class="range-slider" id="input-hrv" min="10" max="80" value="40" />
+              <div class="sensor-scale"><span>10 ms</span><span>80 ms</span></div>
+            </div>
+
+            <!-- EDA -->
+            <div class="sensor-control">
+              <div class="sensor-header">
+                <span class="sensor-title">⚡ Skin Conductance</span>
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="number" step="0.1" class="sensor-num-input" id="num-eda" min="0.1" max="15.0" value="4.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
+                  <span class="sensor-value" id="val-eda" style="font-size: 0.75rem; color: #82919e;"><small>µS</small></span>
+                </div>
+              </div>
+              <input type="range" class="range-slider" id="input-eda" min="0.1" max="15.0" step="0.1" value="4.0" />
+              <div class="sensor-scale"><span>0.1 µS</span><span>15.0 µS</span></div>
+            </div>
+
+            <!-- Skin Temperature -->
+            <div class="sensor-control">
+              <div class="sensor-header">
+                <span class="sensor-title">🌡️ Skin Temperature</span>
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="number" step="0.1" class="sensor-num-input" id="num-temp" min="28.0" max="38.0" value="33.5" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
+                  <span class="sensor-value" id="val-temp" style="font-size: 0.75rem; color: #82919e;"><small>°C</small></span>
+                </div>
+              </div>
+              <input type="range" class="range-slider" id="input-temp" min="28.0" max="38.0" step="0.1" value="33.5" />
+              <div class="sensor-scale"><span>28 °C</span><span>38 °C</span></div>
+            </div>
+
+            <!-- Respiration Rate -->
+            <div class="sensor-control">
+              <div class="sensor-header">
+                <span class="sensor-title">🫁 Respiration Rate</span>
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="number" class="sensor-num-input" id="num-resp" min="8" max="30" value="16" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
+                  <span class="sensor-value" id="val-resp" style="font-size: 0.75rem; color: #82919e;"><small>bpm</small></span>
+                </div>
+              </div>
+              <input type="range" class="range-slider" id="input-resp" min="8" max="30" value="16" />
+              <div class="sensor-scale"><span>8 bpm</span><span>30 bpm</span></div>
+            </div>
+
+            <!-- Sleep Duration -->
+            <div class="sensor-control">
+              <div class="sensor-header">
+                <span class="sensor-title">😴 Sleep Duration</span>
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="number" step="0.1" class="sensor-num-input" id="num-sleep" min="2.0" max="12.0" value="7.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
+                  <span class="sensor-value" id="val-sleep" style="font-size: 0.75rem; color: #82919e;"><small>hrs</small></span>
+                </div>
+              </div>
+              <input type="range" class="range-slider" id="input-sleep" min="2.0" max="12.0" step="0.1" value="7.0" />
+              <div class="sensor-scale"><span>2 hrs</span><span>12 hrs</span></div>
+            </div>
+
+            <!-- Daily Steps -->
+            <div class="sensor-control">
+              <div class="sensor-header">
+                <span class="sensor-title">👟 Daily Steps</span>
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="number" step="100" class="sensor-num-input" id="num-steps" min="500" max="18000" value="5500" style="width: 68px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
+                  <span class="sensor-value" id="val-steps" style="font-size: 0.75rem; color: #82919e;"><small>steps</small></span>
+                </div>
+              </div>
+              <input type="range" class="range-slider" id="input-steps" min="500" max="18000" step="100" value="5500" />
+              <div class="sensor-scale"><span>500</span><span>18,000</span></div>
+            </div>
+
+            <!-- Sedentary Time -->
+            <div class="sensor-control">
+              <div class="sensor-header">
+                <span class="sensor-title">🪑 Sedentary Time</span>
+                <div style="display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="number" step="0.1" class="sensor-num-input" id="num-sedentary" min="2.0" max="16.0" value="8.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
+                  <span class="sensor-value" id="val-sedentary" style="font-size: 0.75rem; color: #82919e;"><small>hrs</small></span>
+                </div>
+              </div>
+              <input type="range" class="range-slider" id="input-sedentary" min="2.0" max="16.0" step="0.1" value="8.0" />
+              <div class="sensor-scale"><span>2 hrs</span><span>16 hrs</span></div>
+            </div>
+
+          </div>
+
+          <div class="step-actions">
+            <button type="button" class="btn btn-secondary" id="btn-back-to-1">← Back to Text</button>
+            <button type="button" class="btn btn-hero" id="btn-to-step-3">Proceed to Synthesis →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= STEP 3: REVIEW & RUN ================= -->
+      <div class="wizard-step" id="step-3" style="display: none;">
+        <div class="step-header">
+          <div class="badge">Synthesis • Ready for Analysis</div>
+          <h2>Review Multimodal Signals</h2>
+          <p class="step-desc">
+            Verify both modalities before passing signals into the Transformer fusion pipeline.
+          </p>
+        </div>
+
+        <div class="card wizard-card">
+          <div class="review-grid">
+            <div class="review-block">
+              <div class="review-block-header">
+                <h4>💬 Linguistic Context Excerpt</h4>
+                <button type="button" class="edit-link-btn" id="edit-text-btn">Edit</button>
+              </div>
+              <div class="review-text-preview" id="review-text-display">
+                <em>No text entered yet.</em>
+              </div>
+            </div>
+
+            <div class="review-block">
+              <div class="review-block-header">
+                <h4>⌚ Wearable Biomarkers Snapshot</h4>
+                <button type="button" class="edit-link-btn" id="edit-sensors-btn">Edit</button>
+              </div>
+              <div class="review-sensors-summary" id="review-sensors-display"></div>
+            </div>
+          </div>
+
+          <div class="consent-box">
+            <label class="checkbox-container">
+              <input type="checkbox" id="chk-consent" checked />
+              <span class="checkmark"></span>
+              <span class="consent-text">
+                I understand that <strong>moodcompiler</strong> is an academic research prototype. Outputs represent exploratory algorithmic severity estimates, <u>not</u> medical diagnostic conclusions.
+              </span>
+            </label>
+          </div>
+
+          <div class="step-actions">
+            <button type="button" class="btn btn-secondary" id="btn-back-to-2">← Back to Wearables</button>
+            <button type="button" class="btn btn-hero" id="btn-start-analysis">Compile & Analyze Signals ⚡</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= STEP 4: 3D AI FUSION & INSIGHT ================= -->
+      <div class="wizard-step" id="step-4" style="display: none;">
+        <div class="pipeline-container" style="position: relative; width: 100%; height: 65vh; min-height: 550px; display: flex; align-items: center; justify-content: flex-end;">
+          
+          <!-- The 3D Pipeline Canvas -->
+          <canvas id="fusion-pipeline-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></canvas>
+
+          <!-- Output Insight Card (Hidden initially, slides in from the right) -->
+          <div id="insight-card-container" style="opacity: 0; transform: translateX(30px); transition: all 1.5s cubic-bezier(0.16, 1, 0.3, 1); z-index: 10; width: 100%; max-width: 340px; margin-right: 2rem;">
+            <div class="card wizard-card" style="padding: 2.5rem; border-color: rgba(100, 184, 173, 0.4); box-shadow: 0 0 50px rgba(100, 184, 173, 0.15);">
+              <h4 style="color: var(--teal); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;">
+                [ Assessment Insight ]
+              </h4>
+              
+              <h2 id="final-severity-title" style="font-size: 2.2rem; font-weight: 700; color: #f8f4eb; margin-bottom: 0.5rem; line-height: 1.1;">
+                Analyzing...
+              </h2>
+              
+              <p id="final-severity-desc" style="color: #b9c4cc; font-size: 0.95rem; line-height: 1.6;">
+                Awaiting multimodal fusion completion.
+              </p>
+              
+              <div style="margin-top: 2rem; border-top: 1px solid rgba(231,213,172,0.16); padding-top: 1.5rem;">
+                 <button class="btn btn-secondary" onclick="location.reload()" style="width: 100%; font-size: 0.85rem;">← Start New Signal Capture</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/emotional-signal-field.js"></script>
+  <script src="js/fusion-pipeline.js"></script>
+  <script src="js/assessment.js?v=2.8"></script>
+</body>
+</html>
