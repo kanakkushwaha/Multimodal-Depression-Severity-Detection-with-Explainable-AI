@@ -284,6 +284,36 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    
+    // Sync sliders and number inputs
+    ['hr', 'hrv', 'eda', 'temp', 'resp', 'sleep', 'steps', 'sedentary'].forEach(s => {
+        const slider = document.getElementById('input-' + s);
+        const num = document.getElementById('num-' + s);
+        if(slider && num) {
+            num.value = slider.value;
+            slider.addEventListener('input', () => { num.value = slider.value; });
+            num.addEventListener('input', () => { slider.value = num.value; document.getElementById('val-' + s).innerHTML = slider.value + document.getElementById('val-' + s).innerHTML.replace(/^[0-9.]+/, ''); });
+        }
+    });
+
+    // Sample inputs
+    document.getElementById('btn-sample-inputs')?.addEventListener('click', () => {
+        const samples = { hr: 95, hrv: 25, eda: 8.5, temp: 34.0, resp: 20, sleep: 5.5, steps: 2500, sedentary: 10.5 };
+        Object.keys(samples).forEach(s => {
+            const slider = document.getElementById('input-' + s);
+            const num = document.getElementById('num-' + s);
+            if(slider && num) {
+                slider.value = samples[s];
+                num.value = samples[s];
+                // trigger input event to update ui
+                slider.dispatchEvent(new Event('input'));
+            }
+        });
+        const text = document.getElementById('social-text');
+        if(text) text.value = "I've been feeling completely exhausted lately. Everything feels so heavy and I can't seem to find joy in anything I used to like. It's just hard to get out of bed.";
+    });
+
+
     /* =========================================================
        5. TRIGGER THE 3D AI FUSION PIPELINE (STEP 4)
        ========================================================= */

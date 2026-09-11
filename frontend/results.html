@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Insight Report — moodcompiler</title>
+  <title>Result Analysis — moodcompiler</title>
   <link rel="icon" type="image/png" href="assets/logo/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,713 +11,848 @@
   <link rel="stylesheet" href="css/style.css" />
 
   <style>
-    /* ── Canvas background ── */
-    #emotional-signal-canvas {
-      position: fixed !important;
-      inset: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      pointer-events: none !important;
-      z-index: 0 !important;
+    :root {
+      --bg-dark: #050a10;
+      --glass-bg: rgba(12, 20, 32, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --accent-rgb: 100, 184, 173;
+      --text-main: #e2e8f0;
+      --text-muted: #82919e;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
-    .results-vignette {
-      position: fixed !important;
-      inset: 0 !important;
-      pointer-events: none !important;
-      z-index: 1 !important;
-      background: radial-gradient(ellipse at 50% 40%, rgba(11,19,29,0.30) 0%, rgba(7,14,23,0.82) 100%) !important;
-      backdrop-filter: blur(1px) !important;
+    body {
+      margin: 0; padding: 0;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 30%, rgba(var(--accent-rgb), 0.1) 0%, transparent 60%),
+        url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.03"/></svg>');
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
     }
 
-    .navbar {
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 100 !important;
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes spinReverse { 100% { transform: rotate(-360deg); } }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.3), inset 0 0 20px rgba(var(--accent-rgb), 0.2); }
+      50% { box-shadow: 0 0 60px rgba(var(--accent-rgb), 0.6), inset 0 0 40px rgba(var(--accent-rgb), 0.5); }
+    }
+    @keyframes dataFlow {
+      0% { stroke-dashoffset: 100; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0; }
+    }
+    @keyframes floatY {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes scanAnim { to { left: 200%; } }
+
+    /* Cinematic Overlay */
+    #cinematic-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg-dark);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+    .cinematic-content {
+      width: 100%; max-width: 400px; padding: 2rem;
+      font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-muted);
+    }
+    .scan-line {
+      width: 100%; height: 2px; background: rgba(var(--accent-rgb), 0.5);
+      position: relative; margin-bottom: 2rem; overflow: hidden;
+      box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8);
+    }
+    .scan-line::after {
+      content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgb(var(--accent-rgb)), transparent);
+      animation: scanAnim 1.5s infinite linear;
+    }
+    .seq-item {
+      margin-bottom: 1rem; opacity: 0; transform: translateX(-10px); transition: all 0.4s ease;
+      display: flex; justify-content: space-between;
+    }
+    .seq-item.active { opacity: 1; transform: translateX(0); }
+    .seq-item .check { color: rgb(var(--accent-rgb)); }
+    .seq-final {
+      margin-top: 2rem; text-align: center; color: rgb(var(--accent-rgb));
+      font-weight: 700; font-size: 1.1rem; opacity: 0; letter-spacing: 0.05em;
+      transition: opacity 0.5s ease;
+      text-shadow: 0 0 15px rgba(var(--accent-rgb), 0.5);
     }
 
-    /* ── Page layout ── */
-    .results-section {
+    .dashboard-container {
+      max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem 6rem;
+      opacity: 0; transition: opacity 1s ease;
+    }
+    .dashboard-container.visible { opacity: 1; }
+
+    /* Background Waves */
+    .signal-field-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 600px; z-index: 0; opacity: 0.4;
+    }
+    .wave-line {
+      fill: none; stroke: rgba(var(--accent-rgb), 0.15); stroke-width: 1.5;
+      animation: driftWave 15s infinite linear alternate;
+    }
+    @keyframes driftWave { to { transform: translateX(50px) translateY(20px); } }
+
+    /* Integrated AI Fusion Layout */
+    .ai-fusion-layout {
       position: relative;
-      z-index: 10;
-      padding: 3.5rem 1.5rem 6rem;
-    }
-
-    .results-container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    /* ── Page header ── */
-    .results-header {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-
-    .results-header .badge {
-      display: inline-block;
-    }
-
-    .results-title {
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      color: #f8f4eb;
-      margin: 0.8rem 0 0.5rem;
-    }
-
-    .results-subtitle {
-      color: #82919e;
-      font-size: 0.95rem;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* ── Glass card base ── */
-    .glass-card {
-      background: linear-gradient(145deg, rgba(23,38,53,0.72), rgba(12,22,33,0.88));
-      border: 1px solid rgba(231,213,172,0.18);
-      border-radius: 24px;
-      padding: 2.2rem 2rem;
-      backdrop-filter: blur(22px);
-      -webkit-backdrop-filter: blur(22px);
-      box-shadow: 0 24px 60px rgba(2,8,14,0.60);
-    }
-
-    /* ── Report grid ── */
-    .report-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.2rem;
-      margin-bottom: 1.2rem;
-    }
-
-    @media (max-width: 680px) {
-      .report-grid { grid-template-columns: 1fr; }
-    }
-
-    /* ── Severity hero card ── */
-    .severity-card {
-      grid-column: 1 / -1;
-      display: flex;
-      align-items: center;
+      grid-template-columns: 320px 1fr 320px;
       gap: 2rem;
-      padding: 2.4rem 2.2rem;
-      border-radius: 20px;
-      position: relative;
-      overflow: hidden;
+      align-items: center;
+      margin: 4rem auto;
+      min-height: 550px;
     }
-
-    .severity-card::before {
-      content: '';
+    .ai-fusion-svg {
       position: absolute;
-      inset: 0;
-      background: inherit;
-      filter: blur(0);
-      z-index: -1;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+    }
+    .data-stream {
+      fill: none; stroke: rgba(var(--accent-rgb), 0.8); stroke-width: 2;
+      stroke-dasharray: 6 20; stroke-linecap: round;
+      animation: dataFlow 2s infinite linear;
+    }
+    .data-path {
+      fill: none; stroke: rgba(var(--accent-rgb), 0.15); stroke-width: 1;
     }
 
-    .severity-level-badge {
-      width: 96px;
-      height: 96px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      font-weight: 800;
-      flex-shrink: 0;
-      border: 2px solid;
-      font-family: 'JetBrains Mono', monospace;
+    .cards-col {
+      display: flex; flex-direction: column; gap: 1.5rem;
+      position: relative; z-index: 10;
+    }
+    
+    .ai-orb-center {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; z-index: 15;
     }
 
-    .severity-text h1 {
-      font-size: clamp(1.8rem, 3.5vw, 2.5rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      margin-bottom: 0.4rem;
+    .ai-orb-container {
+      position: relative; width: 280px; height: 280px;
+      display: flex; align-items: center; justify-content: center;
+      transform-style: preserve-3d;
+    }
+    .ai-orb {
+      position: absolute; width: 180px; height: 180px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(var(--accent-rgb), 0.4), rgba(10,20,30,0.8) 70%);
+      border: 1px solid rgba(var(--accent-rgb), 0.5);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      animation: pulseGlow 4s infinite ease-in-out;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 5; transition: all 0.5s ease;
+    }
+    .orb-score-label {
+      font-family: var(--font-mono); font-size: 0.75rem; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.1em; margin-bottom: 0.2rem;
+    }
+    .orb-score-val {
+      font-size: 4rem; font-weight: 800; color: #fff; line-height: 1;
+      text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.8);
     }
 
-    .severity-text .severity-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #82919e;
-      margin-bottom: 0.8rem;
+    .orbital-ring {
+      position: absolute; width: 100%; height: 100%; border-radius: 50%;
+      border: 1px solid rgba(var(--accent-rgb), 0.2);
+      border-top-color: rgba(var(--accent-rgb), 0.8);
+      border-bottom-color: rgba(var(--accent-rgb), 0.8);
+      transform-style: preserve-3d; transition: all 0.5s ease;
+    }
+    .ring-1 { animation: spin 12s linear infinite; width: 240px; height: 240px; }
+    .ring-2 { animation: spinReverse 18s linear infinite; width: 280px; height: 280px; transform: rotateX(60deg) rotateY(20deg); }
+    .ring-3 { animation: spin 24s linear infinite; width: 320px; height: 320px; transform: rotateX(40deg) rotateY(-40deg); border-top-color: transparent; border-left-color: rgba(var(--accent-rgb),0.5); }
+
+    /* When orbiting speeds up on hover */
+    .orb-fast .ring-1 { animation-duration: 4s; }
+    .orb-fast .ring-2 { animation-duration: 6s; }
+    .orb-fast .ring-3 { animation-duration: 8s; }
+
+    .hero-result-text {
+      margin-top: 2rem; text-align: center; width: 100%;
+      opacity: 0; transform: translateY(20px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hero-result-text.revealed { opacity: 1; transform: translateY(0); }
+    
+    .status-complete {
+      font-family: var(--font-mono); font-size: 0.75rem; color: rgb(var(--accent-rgb));
+      letter-spacing: 0.2em; margin-bottom: 0.5rem; text-transform: uppercase;
+    }
+    .severity-title {
+      font-size: 2.5rem; font-weight: 800; letter-spacing: 0.05em;
+      text-transform: uppercase; color: #fff;
+      text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.6); margin-bottom: 0.2rem;
+    }
+    .severity-level {
+      font-family: var(--font-mono); color: #e5bd73; font-size: 0.9rem;
     }
 
-    .severity-text p {
-      color: #b9c4cc;
-      font-size: 0.93rem;
-      line-height: 1.65;
-      max-width: 560px;
+    /* Holographic HUD Nodes */
+    .contrib-card {
+      position: relative; padding: 1.5rem 1rem; background: transparent;
+      color: #fff; display: flex; flex-direction: column; gap: 0.5rem;
+      opacity: 0; transform: translateY(20px); transition: opacity 0.8s, transform 0.8s;
+      animation: floatY 6s infinite ease-in-out; cursor: default;
     }
-
-    /* ── Severity scale dots ── */
-    .severity-scale {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      margin-top: 1.2rem;
+    .contrib-card.visible { opacity: 1; transform: translateY(0); }
+    
+    .contrib-card::before, .contrib-card::after {
+      content: ''; position: absolute; width: 25px; height: 25px;
+      border: 2px solid rgba(var(--accent-rgb), 0.3); transition: all 0.4s ease;
+      pointer-events: none;
     }
-
-    .scale-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.15);
-      transition: all 0.3s ease;
+    .contrib-card::before { top: 0; left: 0; border-right: none; border-bottom: none; }
+    .contrib-card::after { bottom: 0; right: 0; border-left: none; border-top: none; }
+    
+    .contrib-card:hover::before, .contrib-card:hover::after {
+      width: 100%; height: 100%; border-color: rgba(var(--accent-rgb), 0.8);
+      background: radial-gradient(circle at center, rgba(var(--accent-rgb), 0.05), transparent);
     }
+    .contrib-card:hover { z-index: 20; }
+    
+    .cc-header { display: flex; justify-content: space-between; align-items: baseline; }
+    .cc-icon { font-size: 1.2rem; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+    .cc-val { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8); }
+    .cc-title { font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+    
+    .cc-progress-bg { width: 100%; height: 1px; background: rgba(255,255,255,0.15); position: relative; margin: 0.5rem 0; }
+    .cc-progress-fill { height: 100%; background: rgb(var(--accent-rgb)); box-shadow: 0 0 10px rgb(var(--accent-rgb)); width: 0; position: relative; transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    .cc-progress-fill::after { content: ''; position: absolute; right: 0; top: -2px; width: 5px; height: 5px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px rgb(var(--accent-rgb)); }
+    .cc-pct { font-family: var(--font-mono); font-size: 0.7rem; color: rgb(var(--accent-rgb)); text-align: right; letter-spacing: 0.1em; }
 
-    .scale-dot.filled {
-      transform: scale(1.25);
+    /* Other Sections */
+    .section-header {
+      font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.15em;
+      color: var(--text-muted); text-transform: uppercase; margin: 5rem 0 2rem;
+      text-align: center; position: relative;
     }
-
-    .scale-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      color: #82919e;
-      margin-left: 0.5rem;
+    .section-header::before, .section-header::after {
+      content: ''; position: absolute; top: 50%; width: 60px; height: 1px;
+      background: rgba(255,255,255,0.1);
     }
+    .section-header::before { margin-left: -80px; }
+    .section-header::after { margin-left: 20px; }
 
-    /* ── XAI Signal Contribution Chart ── */
-    .xai-section h3 {
-      font-size: 0.8rem;
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #e5bd73;
-      margin-bottom: 1.4rem;
+    
+    /* LIVING AI PIPELINE CSS */
+    .ai-pipeline-wrapper { position: relative; max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 3rem; perspective: 1000px; }
+    .pipeline-track { position: absolute; left: 39px; top: 20px; bottom: 20px; width: 2px; background: rgba(255,255,255,0.05); z-index: 0; }
+    .pipeline-progress { position: absolute; top: 0; left: 0; width: 100%; height: 0%; background: linear-gradient(180deg, transparent, rgb(var(--accent-rgb))); box-shadow: 0 0 10px rgb(var(--accent-rgb)); transition: height 3s ease-out; }
+    .data-particle { position: absolute; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff, 0 0 20px rgb(var(--accent-rgb)); opacity: 0; }
+    @keyframes dropParticle { 0% { top: 0; opacity: 1; transform: scale(1); } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; transform: scale(0); } }
+
+    .pipe-stage { display: flex; gap: 2rem; align-items: stretch; position: relative; z-index: 2; }
+    .stage-num-container { width: 80px; display: flex; justify-content: center; align-items: flex-start; position: relative; padding-top: 1rem; }
+    .stage-num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; color: rgba(255,255,255,0.1); transition: all 0.5s ease; }
+    .pipe-stage.active .stage-num { color: rgb(var(--accent-rgb)); text-shadow: 0 0 15px rgba(var(--accent-rgb),0.8); }
+    .stage-pulse { position: absolute; top: 1.2rem; left: 50%; transform: translateX(-50%); width: 40px; height: 40px; border: 1px solid rgb(var(--accent-rgb)); border-radius: 50%; opacity: 0; pointer-events: none; }
+    .pipe-stage.active .stage-pulse { animation: pulseCircle 1.5s ease-out; }
+    @keyframes pulseCircle { 0% { transform: translateX(-50%) scale(0.5); opacity: 1; } 100% { transform: translateX(-50%) scale(1.5); opacity: 0; } }
+
+    .stage-card { flex: 1; background: rgba(12, 20, 32, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1.5rem; position: relative; overflow: hidden; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transform-style: preserve-3d; transition: transform 0.2s ease-out, box-shadow 0.3s, border-color 0.3s, opacity 0.5s, filter 0.5s; opacity: 0.4; filter: grayscale(1); }
+    .pipe-stage.active .stage-card { opacity: 1; filter: grayscale(0); border-color: rgba(var(--accent-rgb), 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(var(--accent-rgb), 0.05); }
+
+    .holo-sweep { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.1), transparent); transform: skewX(-20deg); pointer-events: none; }
+    .pipe-stage.active .holo-sweep { animation: holoPass 4s infinite linear; }
+    @keyframes holoPass { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+
+    .sc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; transform: translateZ(20px); }
+    .sc-title { font-weight: 700; color: #fff; letter-spacing: 0.05em; font-size: 1.05rem; }
+    .sc-icon { font-size: 1.5rem; color: rgba(255,255,255,0.5); transition: color 0.5s; }
+    .pipe-stage.active .sc-icon { color: rgb(var(--accent-rgb)); text-shadow: 0 0 10px rgba(var(--accent-rgb),0.8); }
+
+    .sc-body { font-family: var(--font-mono); font-size: 0.85rem; color: #82919e; min-height: 40px; transform: translateZ(15px); position: relative; }
+    .stage-raw { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .raw-node { opacity: 0; transform: translateX(-10px); transition: all 0.5s; }
+    .pipe-stage.active .raw-node { opacity: 1; transform: translateX(0); }
+    .pipe-stage.active .raw-node:nth-child(1) { transition-delay: 0.1s; }
+    .pipe-stage.active .raw-node:nth-child(2) { transition-delay: 0.2s; }
+    .pipe-stage.active .raw-node:nth-child(3) { transition-delay: 0.3s; }
+    .pipe-stage.active .raw-node:nth-child(4) { transition-delay: 0.4s; }
+    .pipe-stage.active .raw-node:nth-child(5) { transition-delay: 0.5s; }
+
+    .feat-flow { display: flex; gap: 0.5rem; align-items: center; }
+    .feat-flow .arr { color: rgba(var(--accent-rgb), 0.5); }
+    .pipe-stage.active .icon-gear { display: inline-block; animation: spinGear 4s linear infinite; }
+    @keyframes spinGear { 100% { transform: rotate(360deg); } }
+
+    .stage-fusion { position: relative; }
+    .fusion-streams { line-height: 1.2; font-size: 0.75rem; white-space: pre; color: rgba(255,255,255,0.3); }
+    .pipe-stage.active .fusion-streams { color: rgba(var(--accent-rgb), 0.8); animation: pulseStream 2s infinite alternate; }
+    .mini-core { display: inline-block; padding: 2px 8px; border: 1px solid rgb(var(--accent-rgb)); border-radius: 4px; background: rgba(var(--accent-rgb),0.2); color: #fff; box-shadow: 0 0 10px rgba(var(--accent-rgb),0.5); }
+    @keyframes pulseStream { to { text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.8); } }
+
+    .stage-severity { display: flex; align-items: center; justify-content: flex-start; }
+    .sev-radar { position: relative; padding-left: 30px; }
+    .radar-ring { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border: 2px solid rgba(var(--accent-rgb),0.3); border-radius: 50%; }
+    .pipe-stage.active .radar-ring { border-color: rgb(var(--accent-rgb)); animation: radarPulse 1.5s infinite; }
+    .sev-result-text { font-weight: 700; color: #fff; letter-spacing: 0.1em; opacity: 0; }
+    .pipe-stage.active .sev-result-text { opacity: 1; transition: opacity 0.5s 1s; }
+    @keyframes radarPulse { 0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.7); } 70% { box-shadow: 0 0 0 10px rgba(var(--accent-rgb), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); } }
+
+    .stage-card[data-tooltip]::before { content: attr(data-tooltip); position: absolute; top: -40px; left: 50%; transform: translateX(-50%) translateY(10px); background: rgba(0,0,0,0.9); border: 1px solid rgba(var(--accent-rgb),0.5); padding: 0.5rem 1rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem; color: #fff; white-space: nowrap; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 100; }
+    .stage-card:hover::before { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .sc-status { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; transform: translateZ(10px); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #555; }
+    .pipe-stage.active .status-dot { background: rgb(var(--accent-rgb)); box-shadow: 0 0 8px rgb(var(--accent-rgb)); animation: blink 1s infinite alternate; }
+    .pipe-stage.completed .status-dot { animation: none; box-shadow: none; background: #64b8ad; }
+    @keyframes blink { to { opacity: 0.3; } }
+
+    /* Explainable AI Grid */
+    .xai-section { max-width: 1000px; margin: 2rem auto 4rem; }
+    .xai-header { font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 2.5rem; color: #fff; text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8); letter-spacing: 0.1em; }
+    .xai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .xai-box { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.08) 0%, rgba(10,20,30,0.6) 100%); border-top: 2px solid rgb(var(--accent-rgb)); border-radius: 8px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s; }
+    .xai-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+    .xai-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50px; background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.15), transparent); pointer-events: none; }
+    .xai-box-title { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .xai-box-value { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 1rem; line-height: 1.2; }
+    .xai-box-desc { font-size: 0.95rem; color: #b9c4cc; line-height: 1.5; }
+    @media(max-width: 768px) { .xai-grid { grid-template-columns: 1fr; } }
+    
+    .story-card {
+      text-align: center; font-size: 1.1rem; line-height: 1.8; color: #b9c4cc;
+      max-width: 800px; margin: 0 auto;
     }
+    .scroll-reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    .scroll-reveal.visible { opacity: 1; transform: translateY(0); }
 
-    .signal-bar-item {
-      margin-bottom: 1.1rem;
+    .footer-disclaimer {
+      text-align: center; margin-top: 5rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05);
+      font-family: var(--font-mono); font-size: 0.75rem; color: #5a6b7c;
     }
-
-    .signal-bar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.4rem;
+    .btn-return {
+      display: inline-block; padding: 0.8rem 2rem; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; text-decoration: none;
+      font-size: 0.9rem; transition: all 0.3s; margin-top: 2rem;
     }
+    .btn-return:hover { background: rgba(var(--accent-rgb), 0.2); border-color: rgb(var(--accent-rgb)); }
 
-    .signal-bar-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      color: #b9c4cc;
-    }
-
-    .signal-bar-pct {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      font-weight: 600;
-    }
-
-    .signal-bar-track {
-      height: 6px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .signal-bar-fill {
-      height: 100%;
-      border-radius: 999px;
-      width: 0%;
-      transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* ── Sensor readings grid ── */
-    .readings-section h3 {
-      font-size: 0.8rem;
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #64b8ad;
-      margin-bottom: 1.4rem;
-    }
-
-    .readings-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.8rem;
-    }
-
-    .reading-chip {
-      background: rgba(8,15,24,0.75);
-      border: 1px solid rgba(100,184,173,0.18);
-      border-radius: 12px;
-      padding: 0.85rem 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .reading-key {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      color: #82919e;
-    }
-
-    .reading-val {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #64b8ad;
-    }
-
-    /* ── Linguistic excerpt ── */
-    .linguistic-section h3 {
-      font-size: 0.8rem;
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #8b7eb8;
-      margin-bottom: 1rem;
-    }
-
-    .linguistic-excerpt {
-      background: rgba(8,15,24,0.70);
-      border: 1px solid rgba(139,126,184,0.22);
-      border-radius: 14px;
-      padding: 1.2rem 1.4rem;
-      color: #b9c4cc;
-      font-size: 0.93rem;
-      line-height: 1.7;
-      font-style: italic;
-    }
-
-    /* ── Disclaimer ── */
-    .disclaimer-box {
-      margin-top: 1.2rem;
-      padding: 1.2rem 1.4rem;
-      border: 1px solid rgba(231,213,172,0.14);
-      border-radius: 14px;
-      background: rgba(229,189,115,0.04);
-    }
-
-    .disclaimer-box p {
-      font-size: 0.82rem;
-      color: #82919e;
-      line-height: 1.6;
-    }
-
-    .disclaimer-box strong {
-      color: #e5bd73;
-    }
-
-    /* ── Action buttons ── */
-    .action-row {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    /* ── Loading state ── */
-    .no-result-msg {
-      text-align: center;
-      padding: 5rem 2rem;
-      color: #82919e;
-    }
-
-    /* ── Entrance animation ── */
-    .animate-in {
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
-    }
-
-    @keyframes fadeUp {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── Mobile Responsiveness ── */
-    @media (max-width: 680px) {
-      .nav-capsule {
-        display: none !important;
+    @media (max-width: 992px) {
+      .ai-fusion-layout {
+        grid-template-columns: 1fr;
+        gap: 4rem;
       }
-
-      .results-section {
-        padding: 2rem 1rem 4rem;
-      }
-
-      .glass-card {
-        padding: 1.4rem 1.2rem;
-        border-radius: 18px;
-      }
-
-      /* Severity card stacks vertically */
-      .severity-card {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 1.2rem !important;
-        padding: 1.6rem 1.4rem !important;
-      }
-
-      .severity-level-badge {
-        width: 72px !important;
-        height: 72px !important;
-        font-size: 1.2rem !important;
-      }
-
-      .severity-text h1 {
-        font-size: 1.8rem !important;
-      }
-
-      /* Report grid: all 1 column */
-      .report-grid {
-        grid-template-columns: 1fr !important;
-      }
-
-      .severity-card {
-        grid-column: 1 / 2 !important;
-      }
-
-      /* Readings 1 column */
-      .readings-grid {
-        grid-template-columns: 1fr !important;
-      }
-
-      /* Action row stacks */
-      .action-row {
-        flex-direction: column !important;
-        align-items: stretch !important;
-      }
-
-      .action-row .btn {
-        text-align: center !important;
-        width: 100% !important;
-      }
-    }
-
-    @media (max-width: 420px) {
-      .results-title {
-        font-size: 1.5rem !important;
-      }
-
-      .brand-name {
-        display: none !important;
-      }
+      .ai-orb-center { order: -1; }
+      .ai-fusion-svg { display: none; } /* Hide lines on mobile stacked view */
     }
   </style>
 </head>
 <body>
 
-  <!-- Background -->
-  <canvas id="emotional-signal-canvas"></canvas>
-  <div class="results-vignette"></div>
+  <div id="cinematic-overlay">
+    <div class="cinematic-content">
+      <div class="scan-line"></div>
+      <div style="margin-bottom: 1.5rem; color: #fff; letter-spacing: 0.1em; font-size: 1rem;">ANALYZING SIGNALS...</div>
+      <div class="seq-item" id="seq-text"><span>Linguistic Depth</span> <span class="check">&#10004;</span></div>
+      <div class="seq-item" id="seq-hr"><span>Cardiac Autonomic Tone</span> <span class="check">&#10004;</span></div>
+      <div class="seq-item" id="seq-eda"><span>Sympathetic Arousal</span> <span class="check">&#10004;</span></div>
+      <div class="seq-item" id="seq-beh"><span>Behavioral Activation</span> <span class="check">&#10004;</span></div>
+      <div class="seq-final" id="seq-found">MULTIMODAL PATTERN DETECTED</div>
+    </div>
+  </div>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="brand">
-        <div class="brand-logo-frame">
-          <img src="assets/logo/logo.png" alt="moodcompiler logo" class="brand-logo" />
-        </div>
-        <span class="brand-name">moodcompiler</span>
-      </a>
-
-      <div class="nav-capsule" style="font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.05em;">
-        <span class="step-badge" style="opacity:0.5;">01 LANGUAGE</span>
-        <span class="nav-dot" style="opacity: 0.3;">—</span>
-        <span class="step-badge" style="opacity:0.5;">02 PHYSIOLOGY</span>
-        <span class="nav-dot" style="opacity: 0.3;">—</span>
-        <span class="step-badge active">04 INSIGHT REPORT</span>
+  <div class="dashboard-container" id="dashboard">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2rem;">
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <img src="assets/logo/logo.png" alt="logo" style="width:24px; border:1px solid rgba(var(--accent-rgb),0.5); border-radius:50%; background:#101a23; padding:4px;" />
+        <span style="font-weight:700; font-size:1.1rem; color:#fff;">moodcompiler</span>
       </div>
-
-      <div class="nav-actions">
-        <a href="index.html" class="btn btn-secondary" style="padding: 0.52rem 1.15rem; font-size: 0.84rem;">← Home</a>
+      <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.1em;">
+        YOUR MOODCOMPILER ANALYSIS
       </div>
     </div>
-  </nav>
 
-  <!-- Results Content -->
-  <section class="results-section">
-    <div class="results-container" id="results-container">
+    <!-- Background Waves for Hero Section -->
+    <svg class="signal-field-bg" viewBox="0 0 1000 500" preserveAspectRatio="none">
+      <path class="wave-line" d="M-100,250 Q150,150 400,250 T900,250 T1100,250" style="animation-delay: 0s" />
+      <path class="wave-line" d="M-100,280 Q200,350 500,250 T1100,280" style="animation-delay: -5s" />
+      <path class="wave-line" d="M-100,220 Q250,100 600,250 T1100,220" style="animation-delay: -10s" />
+    </svg>
 
-      <!-- Fallback if no localStorage data -->
-      <div class="no-result-msg" id="no-result-msg" style="display:none;">
-        <p style="font-family: var(--font-mono); color: var(--teal); margin-bottom: 1rem;">[ NO SIGNAL DATA FOUND ]</p>
-        <p>Please complete the assessment first.</p>
-        <br />
-        <a href="assessment.html" class="btn btn-hero">Go to Assessment →</a>
+    <!-- INTEGRATED 3D AI FUSION DASHBOARD -->
+    <div class="ai-fusion-layout" id="fusion-layout">
+      <svg class="ai-fusion-svg" id="fusion-lines"></svg>
+      
+      <div class="cards-col" id="cards-left">
+        <!-- JS fills left cards -->
+      </div>
+      
+      <div class="ai-orb-center" id="ai-orb-center">
+        <div class="ai-orb-container" id="orb-container">
+          <div class="orbital-ring ring-1"></div>
+          <div class="orbital-ring ring-2"></div>
+          <div class="orbital-ring ring-3"></div>
+          <div class="ai-orb" id="ai-orb">
+            <div class="orb-score-label">MULTIMODAL SCORE</div>
+            <div class="orb-score-val" id="animated-score">0</div>
+          </div>
+        </div>
+        <div class="hero-result-text" id="hero-result-text">
+          <div class="status-complete"><span style="margin-right:0.5rem">&#10004;</span> FUSION COMPLETE</div>
+          <div class="severity-title" id="sev-main">EVALUATING</div>
+          <div class="severity-level" id="sev-level">Level - / 5</div>
+        </div>
       </div>
 
-      <!-- Results will be built here by JS -->
-      <div id="report-content" style="display:none;">
-
-        <!-- Page header -->
-        <div class="results-header animate-in" style="animation-delay: 0.05s;">
-          <div class="badge">moodcompiler • AI Insight Report</div>
-          <h1 class="results-title">Multimodal Assessment Insight</h1>
-          <p class="results-subtitle">LINGUISTIC + PHYSIOLOGICAL + BEHAVIORAL FUSION</p>
-        </div>
-
-        <!-- Main report grid -->
-        <div class="report-grid">
-
-          <!-- Severity Hero (full width) -->
-          <div class="glass-card severity-card animate-in" id="severity-hero" style="animation-delay: 0.15s;">
-            <div class="severity-level-badge" id="severity-badge">L1</div>
-            <div class="severity-text">
-              <div class="severity-label">[ Assessed Severity Level ]</div>
-              <h1 id="severity-title">—</h1>
-              <p id="severity-desc">—</p>
-              <div class="severity-scale" id="severity-scale"></div>
-            </div>
-          </div>
-
-          <!-- Model Accuracy & Empirical Confidence Bar (Full Width) -->
-          <div class="glass-card animate-in" style="grid-column: 1 / -1; padding: 1.4rem 1.8rem; border-color: rgba(100,184,173,0.35); background: linear-gradient(135deg, rgba(23,38,53,0.85), rgba(16,29,42,0.92)); animation-delay: 0.20s;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.2rem;">
-              <div>
-                <span style="font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase;">
-                  [ ML MODEL EVALUATION & CONVERGENCE ]
-                </span>
-                <div style="font-size: 1.25rem; font-weight: 700; color: #f8f4eb; margin-top: 0.25rem;" id="model-confidence-val">
-                  Prediction Confidence: <span style="color: var(--teal);">84.2%</span>
-                </div>
-              </div>
-
-              <!-- Performance Badges -->
-              <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
-                <div style="background: rgba(11,19,29,0.7); border: 1px solid rgba(229,189,115,0.25); border-radius: 10px; padding: 0.5rem 0.9rem; text-align: center;">
-                  <div style="font-family: var(--font-mono); font-size: 0.68rem; color: #82919e;">NLP ENSEMBLE ACCURACY</div>
-                  <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: var(--gold);">72.9%</div>
-                </div>
-                <div style="background: rgba(11,19,29,0.7); border: 1px solid rgba(100,184,173,0.25); border-radius: 10px; padding: 0.5rem 0.9rem; text-align: center;">
-                  <div style="font-family: var(--font-mono); font-size: 0.68rem; color: #82919e;">WEARABLE ACCURACY</div>
-                  <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: var(--teal);">58.6%</div>
-                </div>
-                <div style="background: rgba(11,19,29,0.7); border: 1px solid rgba(231,213,172,0.2); border-radius: 10px; padding: 0.5rem 0.9rem; text-align: center;">
-                  <div style="font-family: var(--font-mono); font-size: 0.68rem; color: #82919e;">FUSION STRATEGY</div>
-                  <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #f8f4eb;">Soft-Voting Late-Fusion</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- XAI Signal Contribution Analysis -->
-          <div class="glass-card xai-section animate-in" id="xai-card" style="animation-delay: 0.25s;">
-            <h3>[ Explainable AI: Feature Attributions ]</h3>
-            <div id="xai-bars"></div>
-            <p style="font-size:0.75rem; color: #82919e; margin-top:1.2rem; font-family: var(--font-mono);">
-              XAI Feature Attribution represents the quantitative weight each modality exerted on the final decision boundary.
-            </p>
-          </div>
-
-          <!-- XAI Narrative & Decision Explanation -->
-          <div class="glass-card animate-in" style="animation-delay: 0.30s;">
-            <h3 style="font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem;">
-              [ XAI Decision Rationale ]
-            </h3>
-            <div id="xai-explanation-text" style="font-size: 0.88rem; line-height: 1.7; color: #b9c4cc;">
-              Loading explanation...
-            </div>
-            <div style="margin-top: 1.2rem; padding: 0.9rem 1rem; background: rgba(8,15,24,0.6); border-radius: 10px; border-left: 3px solid var(--teal); font-family: var(--font-mono); font-size: 0.76rem; color: #82919e;">
-              <strong style="color: var(--teal);">Model Interpretability:</strong> Predictions are anchored on physiological biomarkers (HRV depression deficit, sympathetic EDA surge) cross-referenced with linguistic distress markers.
-            </div>
-          </div>
-
-          <!-- Sensor Readings -->
-          <div class="glass-card readings-section animate-in" style="animation-delay: 0.35s;">
-            <h3>[ Raw Physiological Readings ]</h3>
-            <div class="readings-grid" id="readings-grid"></div>
-          </div>
-
-        </div>
-
-        <!-- Linguistic Input -->
-        <div class="glass-card linguistic-section animate-in" style="animation-delay: 0.45s;">
-          <h3>[ Linguistic Signal Excerpt ]</h3>
-          <div class="linguistic-excerpt" id="linguistic-excerpt">—</div>
-        </div>
-
-        <!-- Disclaimer -->
-        <div class="disclaimer-box animate-in" style="animation-delay: 0.55s;">
-          <p>
-            <strong>Academic Research Prototype — Not a Medical Diagnosis.</strong>
-            This output is generated by an exploratory multimodal AI system built as a B.Tech IT research project at PCCoE Pune.
-            Severity estimates are computed from heuristic signal weighting and do not constitute clinical assessment.
-            If you or someone you know is struggling, please consult a qualified mental health professional.
-          </p>
-        </div>
-
-        <!-- Action row -->
-        <div class="action-row animate-in" style="animation-delay: 0.65s;">
-          <a href="assessment.html" class="btn btn-hero">Run New Assessment ↗</a>
-          <a href="index.html" class="btn btn-secondary">← Back to Home</a>
-        </div>
-
+      <div class="cards-col" id="cards-right">
+        <!-- JS fills right cards -->
       </div>
     </div>
-  </section>
 
-  <script src="js/emotional-signal-field.js"></script>
+    <div class="section-header scroll-reveal">EXPLAINABLE AI (XAI)</div>
+    <div class="xai-section scroll-reveal">
+      <div class="xai-header">WHY DID YOU GET THIS RESULT?</div>
+      <div class="xai-grid">
+        <div class="xai-box">
+          <div class="xai-box-title">Biggest Factor</div>
+          <div class="xai-box-value" id="xai-top-factor">Analyzing...</div>
+          <div class="xai-box-desc" id="xai-top-desc">...</div>
+        </div>
+        <div class="xai-box">
+          <div class="xai-box-title">Your Body Signals</div>
+          <div class="xai-box-value" id="xai-body">Analyzing...</div>
+          <div class="xai-box-desc" id="xai-body-desc">...</div>
+        </div>
+        <div class="xai-box">
+          <div class="xai-box-title">Your Words</div>
+          <div class="xai-box-value" id="xai-text">Analyzing...</div>
+          <div class="xai-box-desc" id="xai-text-desc">...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header scroll-reveal">HOW MOODCOMPILER READ YOUR SIGNALS</div>
+    <div class="ai-pipeline-wrapper scroll-reveal">
+      <div class="pipeline-track">
+        <div class="pipeline-progress"></div>
+        <div class="data-particle p1"></div>
+        <div class="data-particle p2"></div>
+        <div class="data-particle p3"></div>
+      </div>
+
+      <!-- Stage 01 -->
+      <div class="pipe-stage" id="stage-01">
+        <div class="stage-num-container">
+          <div class="stage-num">01</div>
+          <div class="stage-pulse"></div>
+        </div>
+        <div class="stage-card tilt-card" data-tooltip="Collects multimodal inputs including physiological measurements and text.">
+          <div class="holo-sweep"></div>
+          <div class="sc-header">
+            <div class="sc-title">RAW INPUT SIGNALS</div>
+            <div class="sc-icon"><span class="icon-pulse">&#128225;</span></div>
+          </div>
+          <div class="sc-body stage-raw">
+            <div class="raw-node">&#9829; HR</div>
+            <div class="raw-node">&#9676; RRI</div>
+            <div class="raw-node">&#8776; EDA</div>
+            <div class="raw-node">&#8901; TEMP</div>
+            <div class="raw-node">&#10022; TEXT</div>
+          </div>
+          <div class="sc-status"><span class="status-dot"></span> <span class="status-text">WAITING</span></div>
+        </div>
+      </div>
+
+      <!-- Stage 02 -->
+      <div class="pipe-stage" id="stage-02">
+        <div class="stage-num-container">
+          <div class="stage-num">02</div>
+          <div class="stage-pulse"></div>
+        </div>
+        <div class="stage-card tilt-card" data-tooltip="Transforms raw measurements into meaningful model features.">
+          <div class="holo-sweep"></div>
+          <div class="sc-header">
+            <div class="sc-title">FEATURE ENGINEERING</div>
+            <div class="sc-icon"><span class="icon-gear">&#9881;&#65039;</span></div>
+          </div>
+          <div class="sc-body stage-features">
+            <div class="feat-flow">RAW DATA <span class="arr">&#8594;</span> PATTERNS <span class="arr">&#8594;</span> FEATURES</div>
+          </div>
+          <div class="sc-status"><span class="status-dot"></span> <span class="status-text">WAITING</span></div>
+        </div>
+      </div>
+
+      <!-- Stage 03 -->
+      <div class="pipe-stage" id="stage-03">
+        <div class="stage-num-container">
+          <div class="stage-num">03</div>
+          <div class="stage-pulse"></div>
+        </div>
+        <div class="stage-card tilt-card" data-tooltip="Combines information from different modalities before final assessment.">
+          <div class="holo-sweep"></div>
+          <div class="sc-header">
+            <div class="sc-title">LATE-FUSION INTEGRATION</div>
+            <div class="sc-icon"><span class="icon-dna">&#129516;</span></div>
+          </div>
+          <div class="sc-body stage-fusion">
+            <div class="fusion-streams">
+<div class="f-stream">TEXT &#9472;&#9488;</div>
+<div class="f-stream">HR   &#9472;&#9508;</div>
+<div class="f-stream">EDA  &#9472;&#9532;&#9472;&#8594; <span class="mini-core">FUSION CORE</span></div>
+            </div>
+          </div>
+          <div class="sc-status"><span class="status-dot"></span> <span class="status-text">WAITING</span></div>
+        </div>
+      </div>
+
+      <!-- Stage 04 -->
+      <div class="pipe-stage" id="stage-04">
+        <div class="stage-num-container">
+          <div class="stage-num">04</div>
+          <div class="stage-pulse"></div>
+        </div>
+        <div class="stage-card tilt-card" data-tooltip="Maps the integrated signal pattern to the prototype's severity scale.">
+          <div class="holo-sweep"></div>
+          <div class="sc-header">
+            <div class="sc-title">SEVERITY ASSESSMENT</div>
+            <div class="sc-icon"><span class="icon-target">&#127919;</span></div>
+          </div>
+          <div class="sc-body stage-severity">
+            <div class="sev-radar">
+               <div class="radar-ring"></div>
+               <div class="sev-result-text" id="final-sev-text">NORMAL</div>
+            </div>
+          </div>
+          <div class="sc-status"><span class="status-dot"></span> <span class="status-text">WAITING</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-disclaimer scroll-reveal">
+      <div style="margin-bottom: 1rem;">
+        <img src="assets/logo/logo.png" alt="moodcompiler" style="width: 32px; filter: grayscale(1) opacity(0.5);" />
+      </div>
+      <strong>moodcompiler</strong> — Behind Every Signal, There's a Story.<br>
+      Research prototype — this assessment is not a medical diagnosis.<br>
+      <a href="index.html" class="btn-return">&#8592; Return Home</a>
+    </div>
+
+  </div>
+
   <script>
-    /* ──────────────────────────────────────────────
-       Populate the results page from localStorage
-    ────────────────────────────────────────────── */
-    (function () {
-      const raw = localStorage.getItem('mc_result');
-      if (!raw) {
-        document.getElementById('no-result-msg').style.display  = 'block';
+    const raw = localStorage.getItem('mc_result');
+    let data = null;
+    let targetScore = 0;
+    let baseColorRgb = '100, 184, 173';
+    
+    if (raw) {
+      data = JSON.parse(raw);
+      const color = data.color || '#64b8ad';
+      let r = 100, g = 184, b = 173;
+      if (color.startsWith('#') && color.length === 7) {
+        r = parseInt(color.slice(1, 3), 16);
+        g = parseInt(color.slice(3, 5), 16);
+        b = parseInt(color.slice(5, 7), 16);
+      }
+      baseColorRgb = r + ',' + g + ',' + b;
+      document.documentElement.style.setProperty('--accent-rgb', baseColorRgb);
+      const compScore = data.composite !== undefined ? data.composite : (data.composite_score !== undefined ? data.composite_score : 0.5);
+      targetScore = Math.round(compScore * 100);
+    }
+
+    window.onload = () => {
+      if(!data) {
+        document.getElementById('cinematic-overlay').innerHTML = '<div style="color:#82919e; font-family:var(--font-mono)">[ NO DATA FOUND ]<br><br><a href="assessment.html" style="color:#64b8ad">Go to Assessment</a></div>';
         return;
       }
 
-      const data = JSON.parse(raw);
-      document.getElementById('report-content').style.display = 'block';
+      const seqTiming = [
+        { id: 'seq-text', time: 600 },
+        { id: 'seq-hr', time: 1200 },
+        { id: 'seq-eda', time: 1800 },
+        { id: 'seq-beh', time: 2400 },
+        { id: 'seq-found', time: 3200 }
+      ];
 
-      const severityColor = data.color || '#64b8ad';
-
-      /* ── Severity hero ── */
-      const hero = document.getElementById('severity-hero');
-      hero.style.background = `linear-gradient(135deg, ${severityColor}18, ${severityColor}06)`;
-      hero.style.borderColor = `${severityColor}44`;
-      hero.style.boxShadow  = `0 0 80px ${severityColor}18`;
-
-      const badge = document.getElementById('severity-badge');
-      badge.innerText       = `L${data.level}`;
-      badge.style.color     = severityColor;
-      badge.style.borderColor = severityColor;
-      badge.style.boxShadow = `0 0 20px ${severityColor}44, inset 0 0 20px ${severityColor}10`;
-      badge.style.background = `${severityColor}12`;
-
-      document.getElementById('severity-title').innerText = data.severity;
-      document.getElementById('severity-title').style.color = severityColor;
-      document.getElementById('severity-desc').innerText  = data.description;
-
-      // Scale dots (4-Class Severity Architecture)
-      const scale = document.getElementById('severity-scale');
-      const dots  = ['Normal', 'Mild', 'Moderate', 'Severe'];
-      dots.forEach((label, i) => {
-        const dot = document.createElement('div');
-        dot.className = 'scale-dot';
-        if (i < data.level) {
-          dot.classList.add('filled');
-          dot.style.background = severityColor;
-          dot.style.boxShadow  = `0 0 6px ${severityColor}`;
-        }
-        scale.appendChild(dot);
-      });
-      const lbl = document.createElement('span');
-      lbl.className   = 'scale-label';
-      lbl.innerText   = `Level ${data.level} / 4`;
-      scale.appendChild(lbl);
-
-      /* ── Dynamic Model Confidence & Rationale ── */
-      const readings = data.sensorReadings || {};
-      const contrib  = data.contributions || {};
-      
-      const compositeVal = data.composite !== undefined ? data.composite : (data.composite_score !== undefined ? data.composite_score : 0.5);
-      
-      // Dynamic Confidence derived from Class Posterior Entropy & Distance from Decision Thresholds
-      let dynamicConf;
-      let convergenceStatus = 'Optimal Convergence';
-
-      if (data.level === 4) {
-        // High confidence on strong convergence
-        dynamicConf = 91.2 + ((compositeVal - 0.6) * 12.0);
-        convergenceStatus = 'High Signal Convergence ⚡';
-      } else if (data.level === 1) {
-        // High confidence on clear baseline homeostatic readings
-        dynamicConf = 89.0 + ((0.25 - compositeVal) * 20.0);
-        convergenceStatus = 'Clear Baseline Convergence';
-      } else if (data.level === 3) {
-        // Moderate boundary ambiguity
-        dynamicConf = 80.5 + ((compositeVal - 0.45) * 15.0);
-        convergenceStatus = 'Moderate Cross-Modal Load';
-      } else {
-        // Mild / subtle divergence
-        dynamicConf = 73.4 + (Math.sin(compositeVal * 10) * 4.5);
-        convergenceStatus = 'Subtle Signal Variance';
-      }
-
-      const displayConf = Math.min(97.2, Math.max(68.5, dynamicConf)).toFixed(1);
-      const confEl = document.getElementById('model-confidence-val');
-      if (confEl) {
-        confEl.innerHTML = `Prediction Confidence: <span style="color: ${severityColor};">${displayConf}%</span> <small style="font-size: 0.72rem; color: #82919e; font-weight: normal; margin-left: 0.6rem; font-family: var(--font-mono);">[ ${convergenceStatus} ]</small>`;
-      }
-
-      // Generate explainable decision rationale text
-      const xaiTextEl = document.getElementById('xai-explanation-text');
-      if (xaiTextEl) {
-        let drivers = [];
-        if (readings.hrv && readings.hrv < 30) drivers.push(`<strong>depressed Heart Rate Variability (${readings.hrv} ms)</strong> reflecting diminished parasympathetic vagal tone`);
-        if (readings.eda && readings.eda > 6.0) drivers.push(`<strong>hyperactive sympathetic electrodermal arousal (${readings.eda} µS)</strong>`);
-        if (readings.sleep && readings.sleep < 5.5) drivers.push(`<strong>chronic sleep deprivation (${readings.sleep} hrs)</strong>`);
-        if (readings.sedentary && readings.sedentary > 10.0) drivers.push(`<strong>elevated sedentary inactivity (${readings.sedentary} hrs)</strong>`);
-        if (data.text && data.text.length > 25) drivers.push(`<strong>linguistic affective indicators</strong> extracted from textual cues`);
-
-        if (drivers.length === 0) {
-          drivers.push(`biomarkers hovering within calibrated physiological homeostatic ranges`);
-        }
-
-        const narrative = `The multimodal decision engine classified this profile as <strong>${data.severity}</strong> with <strong>${displayConf}% statistical confidence</strong>. The primary driving signals triggering this classification boundary were ${drivers.join(', along with ')}. Wearable sensors provided continuous autonomic telemetry while NLP validated digital cognitive distortion patterns.`;
-        xaiTextEl.innerHTML = narrative;
-      }
-
-      /* ── XAI bars ── */
-      const xaiContainer = document.getElementById('xai-bars');
-      const maxPct        = Math.max(...Object.values(contrib), 1);
-
-      Object.entries(contrib).forEach(([label, pct]) => {
-        const barWidth = Math.round((pct / maxPct) * 100);
-        const item = document.createElement('div');
-        item.className = 'signal-bar-item';
-        item.innerHTML = `
-          <div class="signal-bar-header">
-            <span class="signal-bar-label">${label}</span>
-            <span class="signal-bar-pct" style="color:${severityColor}">${pct}%</span>
-          </div>
-          <div class="signal-bar-track">
-            <div class="signal-bar-fill" data-width="${barWidth}" style="background: linear-gradient(90deg, ${severityColor}bb, ${severityColor});"></div>
-          </div>
-        `;
-        xaiContainer.appendChild(item);
+      seqTiming.forEach(step => {
+        setTimeout(() => {
+          document.getElementById(step.id).classList.add('active');
+        }, step.time);
       });
 
-      // Animate bars in after a short delay
       setTimeout(() => {
-        document.querySelectorAll('.signal-bar-fill').forEach(bar => {
-          bar.style.width = bar.dataset.width + '%';
-        });
-      }, 500);
+        document.getElementById('cinematic-overlay').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('cinematic-overlay').style.display = 'none';
+          document.getElementById('dashboard').classList.add('visible');
+          
+          // Trigger cards animation
+          const cards = document.querySelectorAll('.contrib-card');
+          cards.forEach((c, i) => {
+             setTimeout(() => { c.classList.add('visible'); }, i * 150 + 500);
+          });
+          setTimeout(drawLines, 1000); // Draw SVG lines once layout is somewhat stable
+          
+          startScoreAnimation();
+        }, 800);
+      }, 4500);
+    };
 
-      /* ── Sensor readings ── */
-      const readingsMap = {
-        'HR':        readings.hr !== undefined ? `${readings.hr} bpm` : '—',
-        'HRV':       readings.hrv !== undefined ? `${readings.hrv} ms` : '—',
-        'EDA':       readings.eda !== undefined ? `${readings.eda} µS` : '—',
-        'TEMP':      readings.temp !== undefined ? `${readings.temp} °C` : '—',
-        'RESP':      readings.resp !== undefined ? `${readings.resp} bpm` : '—',
-        'SLEEP':     readings.sleep !== undefined ? `${readings.sleep} hrs` : '—',
-        'STEPS':     readings.steps !== undefined ? `${readings.steps}` : '—',
-        'SEDENTARY': readings.sedentary !== undefined ? `${readings.sedentary} hrs` : '—',
+    function startScoreAnimation() {
+      let current = 0;
+      const duration = 2000;
+      const steps = 40;
+      const stepTime = duration / steps;
+      const increment = targetScore / steps;
+      const scoreEl = document.getElementById('animated-score');
+
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= targetScore) {
+          current = targetScore;
+          clearInterval(timer);
+          revealFinalResult();
+        }
+        scoreEl.innerText = Math.round(current);
+      }, stepTime);
+    }
+
+    function mapToSpectrum(level, compScore) {
+      if(level === 1) return 1;
+      if(level === 2) return compScore > 0.4 ? 3 : 2;
+      if(level === 3) return 4;
+      if(level === 4) return 5;
+      return 3;
+    }
+
+    function revealFinalResult() {
+      const compScore = data.composite !== undefined ? data.composite : (data.composite_score !== undefined ? data.composite_score : 0.5);
+      document.getElementById('sev-main').innerText = data.severity.toUpperCase();
+      document.getElementById('sev-level').innerText = 'Level ' + mapToSpectrum(data.level, compScore) + ' / 5';
+      document.getElementById('hero-result-text').classList.add('revealed');
+      
+      // Animate progress bars in cards
+      document.querySelectorAll('.cc-progress-fill').forEach(bar => {
+        bar.style.width = bar.dataset.w + '%';
+      });
+    }
+
+    if(data) {
+      const readings = data.sensorReadings || data.sensor_readings || {};
+      const contrib = data.contributions || {};
+      
+      const cEDA = contrib['Autonomic Arousal (EDA)'] || 0;
+      const cCardio = contrib['Cardiac Stress (HR/HRV)'] || 0;
+      const cSleep = contrib['Sleep Deprivation Risk'] || 0;
+      const cSedentary = contrib['Sedentary Inactivity'] || 0;
+      const cResp = contrib['Respiratory Pattern'] || 0;
+      const cText = contrib['Linguistic Depth (NLP)'] || 0;
+
+      // Color mapping for hover
+      const cColors = {
+        EDA: '255, 175, 100',
+        HR: '255, 100, 120',
+        SLEEP: '120, 150, 255',
+        SEDENTARY: '160, 130, 120',
+        RESP: '100, 220, 200',
+        TEXT: '200, 140, 255'
       };
 
-      const grid = document.getElementById('readings-grid');
-      grid.innerHTML = '';
-      Object.entries(readingsMap).forEach(([key, val]) => {
-        const chip = document.createElement('div');
-        chip.className = 'reading-chip';
-        chip.innerHTML = `<span class="reading-key">${key}</span><span class="reading-val">${val}</span>`;
-        grid.appendChild(chip);
-      });
+      const signalsConfig = [
+        { key: 'EDA', label: 'Autonomic Arousal', val: readings.eda !== undefined ? readings.eda+' \u00B5S' : '-', icon: '\u26A1', desc: 'Sympathetic nervous system activity.', c: cEDA, col: cColors.EDA },
+        { key: 'HR_HRV', label: 'Cardiac Stress', val: (readings.hr !== undefined && readings.hrv !== undefined) ? readings.hr+' bpm' : '-', icon: '\uD83E\uDEC0', desc: 'Baseline cardiac stress and parasympathetic resilience.', c: cCardio, col: cColors.HR },
+        { key: 'SLEEP', label: 'Sleep Quality', val: readings.sleep !== undefined ? readings.sleep+' hrs' : '-', icon: '\uD83C\uDF19', desc: 'Sleep deprivation risk.', c: cSleep, col: cColors.SLEEP },
+        { key: 'SEDENTARY', label: 'Sedentary Inactivity', val: readings.sedentary !== undefined ? readings.sedentary+' hrs' : '-', icon: '\uD83E\uDE91', desc: 'Behavioral withdrawal indicator.', c: cSedentary, col: cColors.SEDENTARY },
+        { key: 'RESP', label: 'Respiratory Pattern', val: readings.resp !== undefined ? readings.resp+' bpm' : '-', icon: '\uD83E\uDEC1', desc: 'Breathing variations linked to autonomic arousal.', c: cResp, col: cColors.RESP },
+        { key: 'TEXT', label: 'Linguistic Analysis', val: data.text && data.text.length > 5 ? 'Analyzed' : '-', icon: '\uD83D\uDCAC', desc: 'Semantic indicators of cognitive distortions.', c: cText, col: cColors.TEXT }
+      ];
 
-      /* ── Linguistic excerpt ── */
-      const textEl = document.getElementById('linguistic-excerpt');
-      if (data.text && data.text.trim().length > 0) {
-        textEl.innerText = `"${data.text.trim()}"`;
-      } else {
-        textEl.innerText = 'No linguistic signal was provided for this assessment.';
-        textEl.style.fontStyle = 'normal';
-        textEl.style.color     = '#82919e';
+      const leftCol = document.getElementById('cards-left');
+      const rightCol = document.getElementById('cards-right');
+      
+      let maxC = 1;
+      if (Object.keys(contrib).length > 0) {
+          maxC = Math.max(...Object.values(contrib));
+      }
+      
+      let validSignals = signalsConfig.filter(sig => sig.val !== '-');
+      // Split into left and right
+      const mid = Math.ceil(validSignals.length / 2);
+      const leftSigs = validSignals.slice(0, mid);
+      const rightSigs = validSignals.slice(mid);
+
+      function createCardHTML(sig) {
+        const pct = Math.round((sig.c / (maxC || 1)) * 100);
+        const delay = (Math.random() * 3).toFixed(2);
+        return `
+        <div class="contrib-card" title="${sig.desc}" data-color="${sig.col}" style="animation-delay: -${delay}s">
+          <div class="cc-header">
+            <div class="cc-icon">${sig.icon}</div>
+            <div class="cc-val">${sig.val}</div>
+          </div>
+          <div class="cc-title">${sig.label}</div>
+          <div class="cc-progress-bg">
+            <div class="cc-progress-fill" data-w="${pct}"></div>
+          </div>
+          <div class="cc-pct">${sig.c}% Contribution</div>
+        </div>`;
       }
 
-    })();
+      leftCol.innerHTML = leftSigs.map(createCardHTML).join('');
+      rightCol.innerHTML = rightSigs.map(createCardHTML).join('');
+
+      let maxKey = ''; let maxVal = -1;
+      for (let key in contrib) { if (contrib[key] > maxVal) { maxVal = contrib[key]; maxKey = key; } }
+      let topFactorName = maxKey.split('(')[0].trim();
+      let topFactorDesc = "This was the strongest signal affecting your score.";
+      if (topFactorName.includes("Cardiac")) topFactorDesc = "Your heart rate patterns strongly influenced the AI.";
+      if (topFactorName.includes("Autonomic")) topFactorDesc = "Your skin sweat levels (EDA) showed significant arousal.";
+      if (topFactorName.includes("Sleep")) topFactorDesc = "Your lack of sleep was a major warning sign.";
+      if (topFactorName.includes("Sedentary")) topFactorDesc = "Your low physical activity played a big role.";
+      if (topFactorName.includes("Linguistic")) topFactorDesc = "The words you typed carried the most emotional weight.";
+      if (topFactorName.includes("Respiratory")) topFactorDesc = "Your breathing patterns were the main trigger.";
+
+      document.getElementById('xai-top-factor').innerText = topFactorName;
+      document.getElementById('xai-top-desc').innerText = topFactorDesc;
+
+      let bodyTotal = cEDA + cCardio + cSleep + cSedentary + cResp;
+      let textTotal = cText;
+
+      document.getElementById('xai-body').innerText = bodyTotal > 40 ? "Physical Stress" : "Physically Stable";
+      document.getElementById('xai-body-desc').innerText = bodyTotal > 40 ? "Your body sensors (Heart, Sweat, Sleep) show clear signs of exhaustion or stress." : "Your physical sensors are mostly in the normal, relaxed range.";
+
+      document.getElementById('xai-text').innerText = data.text && data.text.length > 5 ? (textTotal > 30 ? "Heavy Impact" : "Neutral Tone") : "No Text";
+      document.getElementById('xai-text-desc').innerText = data.text && data.text.length > 5 ? (textTotal > 30 ? "The AI detected strong feelings of sadness or stress in your writing." : "Your writing did not show severe depressive markers.") : "You didn't write anything for the AI to analyze.";
+    }
+
+    // Hover Interaction: Orb reacts to Cards
+    document.querySelectorAll('.contrib-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        document.documentElement.style.setProperty('--accent-rgb', card.dataset.color);
+        document.getElementById('orb-container').classList.add('orb-fast');
+      });
+      card.addEventListener('mouseleave', () => {
+        document.documentElement.style.setProperty('--accent-rgb', baseColorRgb);
+        document.getElementById('orb-container').classList.remove('orb-fast');
+      });
+    });
+
+    // Draw SVG Lines connecting Cards to Orb
+    function drawLines() {
+      const svg = document.getElementById('fusion-lines');
+      const orb = document.getElementById('ai-orb');
+      const layout = document.getElementById('fusion-layout');
+      const cards = document.querySelectorAll('.contrib-card');
+      
+      if(!svg || !orb || !layout) return;
+      
+      // If layout is single column (mobile), clear lines
+      if(window.innerWidth <= 992) {
+        svg.innerHTML = '';
+        return;
+      }
+
+      const svgRect = layout.getBoundingClientRect();
+      const orbRect = orb.getBoundingClientRect();
+      
+      const orbX = orbRect.left + orbRect.width/2 - svgRect.left;
+      const orbY = orbRect.top + orbRect.height/2 - svgRect.top;
+
+      let paths = '';
+      cards.forEach((card, idx) => {
+        const rect = card.getBoundingClientRect();
+        const isLeft = rect.left < orbRect.left;
+        
+        const startX = isLeft ? rect.right - svgRect.left : rect.left - svgRect.left;
+        const startY = rect.top + rect.height/2 - svgRect.top;
+        
+        // Control points for bezier curve (gentle s-curve towards center)
+        const cpX = isLeft ? startX + (orbX - startX)/2 : startX - (startX - orbX)/2;
+        
+        const d = `M${startX},${startY} C${cpX},${startY} ${cpX},${orbY} ${orbX},${orbY}`;
+        paths += `<path d="${d}" class="data-path" />`;
+        paths += `<path d="${d}" class="data-stream" style="animation-delay: ${Math.random()*2}s" />`;
+      });
+      svg.innerHTML = paths;
+    }
+
+    window.addEventListener('resize', () => {
+      requestAnimationFrame(drawLines);
+    });
+
+    // Scroll reveal observer
+    
+    function activatePipeline() {
+      const track = document.querySelector('.pipeline-progress');
+      const p1 = document.querySelector('.data-particle.p1');
+      const p2 = document.querySelector('.data-particle.p2');
+      const p3 = document.querySelector('.data-particle.p3');
+      
+      if (track) track.style.height = '100%';
+      if (p1) { p1.style.animation = 'dropParticle 2s linear infinite'; p1.style.animationDelay = '0s'; }
+      if (p2) { p2.style.animation = 'dropParticle 2s linear infinite'; p2.style.animationDelay = '0.6s'; }
+      if (p3) { p3.style.animation = 'dropParticle 2s linear infinite'; p3.style.animationDelay = '1.2s'; }
+
+      const stages = document.querySelectorAll('.pipe-stage');
+      const statuses = [
+        { el: stages[0], doing: 'COLLECTING', done: 'COLLECTED' },
+        { el: stages[1], doing: 'PROCESSING', done: 'PROCESSED' },
+        { el: stages[2], doing: 'FUSING', done: 'FUSED' },
+        { el: stages[3], doing: 'ASSESSING', done: 'COMPLETE' }
+      ];
+
+      stages.forEach((s, idx) => {
+        setTimeout(() => {
+          s.classList.add('active');
+          const stText = s.querySelector('.status-text');
+          if(stText) stText.innerText = statuses[idx].doing;
+          
+          if (idx > 0) {
+            stages[idx-1].classList.add('completed');
+            const prevText = stages[idx-1].querySelector('.status-text');
+            if(prevText) prevText.innerText = statuses[idx-1].done;
+          }
+          
+          if (idx === 3) {
+            setTimeout(() => {
+               s.classList.add('completed');
+               if(stText) stText.innerText = statuses[3].done;
+               const sevText = document.getElementById('final-sev-text');
+               if(sevText && data) sevText.innerText = data.severity.toUpperCase();
+            }, 1000);
+          }
+        }, idx * 800);
+      });
+    }
+
+    document.querySelectorAll('.tilt-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -4;
+        const rotateY = ((x - centerX) / centerX) * 4;
+        card.style.transform = perspective(1000px) rotateX(deg) rotateY(deg) translateZ(10px);
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateZ(0)';
+      });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          if (entry.target.classList.contains('ai-pipeline-wrapper') && !entry.target.dataset.activated) {
+            entry.target.dataset.activated = 'true';
+            activatePipeline();
+          }
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+
   </script>
 </body>
 </html>

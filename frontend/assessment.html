@@ -401,7 +401,7 @@
                 <span class="sensor-title">❤️ Heart Rate</span>
                 <div style="display: flex; align-items: center; gap: 0.3rem;">
                   <input type="number" class="sensor-num-input" id="num-hr" min="45" max="150" value="74" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <span class="sensor-value" id="val-hr" style="font-size: 0.75rem; color: #82919e;"><small>bpm</small></span>
+                  <input type="number" class="manual-input" id="num-hr" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-hr" style="font-size: 0.75rem; color: #82919e;"><small>bpm</small></span>
                 </div>
               </div>
               <input type="range" class="range-slider" id="input-hr" min="45" max="150" value="74" />
@@ -414,7 +414,7 @@
                 <span class="sensor-title">💓 HRV (ms)</span>
                 <div style="display: flex; align-items: center; gap: 0.3rem;">
                   <input type="number" class="sensor-num-input" id="num-hrv" min="10" max="80" value="40" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <span class="sensor-value" id="val-hrv" style="font-size: 0.75rem; color: #82919e;"><small>ms</small></span>
+                  <input type="number" class="manual-input" id="num-hrv" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-hrv" style="font-size: 0.75rem; color: #82919e;"><small>ms</small></span>
                 </div>
               </div>
               <input type="range" class="range-slider" id="input-hrv" min="10" max="80" value="40" />
@@ -427,7 +427,7 @@
                 <span class="sensor-title">⚡ Skin Conductance</span>
                 <div style="display: flex; align-items: center; gap: 0.3rem;">
                   <input type="number" step="0.1" class="sensor-num-input" id="num-eda" min="0.1" max="15.0" value="4.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <span class="sensor-value" id="val-eda" style="font-size: 0.75rem; color: #82919e;"><small>µS</small></span>
+                  <input type="number" class="manual-input" id="num-eda" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-eda" style="font-size: 0.75rem; color: #82919e;"><small>µS</small></span>
                 </div>
               </div>
               <input type="range" class="range-slider" id="input-eda" min="0.1" max="15.0" step="0.1" value="4.0" />
@@ -440,7 +440,7 @@
                 <span class="sensor-title">🌡️ Skin Temperature</span>
                 <div style="display: flex; align-items: center; gap: 0.3rem;">
                   <input type="number" step="0.1" class="sensor-num-input" id="num-temp" min="28.0" max="38.0" value="33.5" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <span class="sensor-value" id="val-temp" style="font-size: 0.75rem; color: #82919e;"><small>°C</small></span>
+                  <input type="number" class="manual-input" id="num-temp" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-temp" style="font-size: 0.75rem; color: #82919e;"><small>°C</small></span>
                 </div>
               </div>
               <input type="range" class="range-slider" id="input-temp" min="28.0" max="38.0" step="0.1" value="33.5" />
@@ -453,7 +453,7 @@
                 <span class="sensor-title">🫁 Respiration Rate</span>
                 <div style="display: flex; align-items: center; gap: 0.3rem;">
                   <input type="number" class="sensor-num-input" id="num-resp" min="8" max="30" value="16" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <span class="sensor-value" id="val-resp" style="font-size: 0.75rem; color: #82919e;"><small>bpm</small></span>
+                  <input type="number" class="manual-input" id="num-resp" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-resp" style="font-size: 0.75rem; color: #82919e;"><small>bpm</small></span>
                 </div>
               </div>
               <input type="range" class="range-slider" id="input-resp" min="8" max="30" value="16" />
@@ -466,7 +466,7 @@
                 <span class="sensor-title">😴 Sleep Duration</span>
                 <div style="display: flex; align-items: center; gap: 0.3rem;">
                   <input type="number" step="0.1" class="sensor-num-input" id="num-sleep" min="2.0" max="12.0" value="7.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <span class="sensor-value" id="val-sleep" style="font-size: 0.75rem; color: #82919e;"><small>hrs</small></span>
+                  <input type="number" class="manual-input" id="num-sleep" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-sleep" style="font-size: 0.75rem; color: #82919e;"><small>hrs</small></span>
                 </div>
               </div>
               <input type="range" class="range-slider" id="input-sleep" min="2.0" max="12.0" step="0.1" value="7.0" />
@@ -479,7 +479,7 @@
                 <span class="sensor-title">👟 Daily Steps</span>
                 <div style="display: flex; align-items: center; gap: 0.3rem;">
                   <input type="number" step="100" class="sensor-num-input" id="num-steps" min="500" max="18000" value="5500" style="width: 68px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <span class="sensor-value" id="val-steps" style="font-size: 0.75rem; color: #82919e;"><small>steps</small></span>
+                  <input type="number" class="manual-input" id="num-steps" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-steps" style="font-size: 0.75rem; color: #82919e;"><small>steps</small></span>
                 </div>
               </div>
               <input type="range" class="range-slider" id="input-steps" min="500" max="18000" step="100" value="5500" />
@@ -492,7 +492,7 @@
                 <span class="sensor-title">🪑 Sedentary Time</span>
                 <div style="display: flex; align-items: center; gap: 0.3rem;">
                   <input type="number" step="0.1" class="sensor-num-input" id="num-sedentary" min="2.0" max="16.0" value="8.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <span class="sensor-value" id="val-sedentary" style="font-size: 0.75rem; color: #82919e;"><small>hrs</small></span>
+                  <input type="number" class="manual-input" id="num-sedentary" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-sedentary" style="font-size: 0.75rem; color: #82919e;"><small>hrs</small></span>
                 </div>
               </div>
               <input type="range" class="range-slider" id="input-sedentary" min="2.0" max="16.0" step="0.1" value="8.0" />
