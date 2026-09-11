@@ -346,18 +346,6 @@
 </head>
 <body>
 
-  <div id="cinematic-overlay">
-    <div class="cinematic-content">
-      <div class="scan-line"></div>
-      <div style="margin-bottom: 1.5rem; color: #fff; letter-spacing: 0.1em; font-size: 1rem;">ANALYZING SIGNALS...</div>
-      <div class="seq-item" id="seq-text"><span>Linguistic Depth</span> <span class="check">&#10004;</span></div>
-      <div class="seq-item" id="seq-hr"><span>Cardiac Autonomic Tone</span> <span class="check">&#10004;</span></div>
-      <div class="seq-item" id="seq-eda"><span>Sympathetic Arousal</span> <span class="check">&#10004;</span></div>
-      <div class="seq-item" id="seq-beh"><span>Behavioral Activation</span> <span class="check">&#10004;</span></div>
-      <div class="seq-final" id="seq-found">MULTIMODAL PATTERN DETECTED</div>
-    </div>
-  </div>
-
   <div class="dashboard-container" id="dashboard">
     <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2rem;">
       <div style="display:flex; align-items:center; gap:0.5rem;">
@@ -560,40 +548,19 @@
 
     window.onload = () => {
       if(!data) {
-        document.getElementById('cinematic-overlay').innerHTML = '<div style="color:#82919e; font-family:var(--font-mono)">[ NO DATA FOUND ]<br><br><a href="assessment.html" style="color:#64b8ad">Go to Assessment</a></div>';
+        document.body.innerHTML = '<div style="color:#82919e; font-family:var(--font-mono); padding:2rem; text-align:center;">[ NO DATA FOUND ]<br><br><a href="assessment.html" style="color:#64b8ad">Go to Assessment</a></div>';
         return;
       }
-
-      const seqTiming = [
-        { id: 'seq-text', time: 600 },
-        { id: 'seq-hr', time: 1200 },
-        { id: 'seq-eda', time: 1800 },
-        { id: 'seq-beh', time: 2400 },
-        { id: 'seq-found', time: 3200 }
-      ];
-
-      seqTiming.forEach(step => {
-        setTimeout(() => {
-          document.getElementById(step.id).classList.add('active');
-        }, step.time);
+      
+      document.getElementById('dashboard').classList.add('visible');
+      
+      // Trigger cards animation
+      const cards = document.querySelectorAll('.contrib-card');
+      cards.forEach((c, i) => {
+         setTimeout(() => { c.classList.add('visible'); }, i * 150 + 200);
       });
-
-      setTimeout(() => {
-        document.getElementById('cinematic-overlay').style.opacity = '0';
-        setTimeout(() => {
-          document.getElementById('cinematic-overlay').style.display = 'none';
-          document.getElementById('dashboard').classList.add('visible');
-          
-          // Trigger cards animation
-          const cards = document.querySelectorAll('.contrib-card');
-          cards.forEach((c, i) => {
-             setTimeout(() => { c.classList.add('visible'); }, i * 150 + 500);
-          });
-          setTimeout(drawLines, 1000); // Draw SVG lines once layout is somewhat stable
-          
-          startScoreAnimation();
-        }, 800);
-      }, 4500);
+      setTimeout(drawLines, 500);
+      startScoreAnimation();
     };
 
     function startScoreAnimation() {
