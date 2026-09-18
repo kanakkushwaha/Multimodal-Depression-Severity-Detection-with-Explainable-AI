@@ -26,14 +26,35 @@ _scaler = None
 _wearable_features = None
 _classes = ['Normal', 'Mild', 'Moderate', 'Severe']
 
+# Optional MentalBERT auto-upgrade
+_mentalbert_model = None
+_mentalbert_tokenizer = None
+_use_mentalbert = False
+
 def load_models():
     global _text_model, _tfidf, _wearable_model, _scaler, _wearable_features
+    global _mentalbert_model, _mentalbert_tokenizer, _use_mentalbert
+
     if _text_model is None:
         _text_model = joblib.load(os.path.join(MODEL_DIR, 'text_model.joblib'))
         _tfidf = joblib.load(os.path.join(MODEL_DIR, 'tfidf_vectorizer.joblib'))
         _wearable_model = joblib.load(os.path.join(MODEL_DIR, 'wearable_model.joblib'))
         _scaler = joblib.load(os.path.join(PROC_DIR, 'scaler.joblib'))
         _wearable_features = pd.read_csv(os.path.join(PROC_DIR, 'feature_names.csv')).iloc[:, 0].tolist()
+
+    # Auto-detect MentalBERT fine-tuned checkpoint
+    mb_dir = os.path.join(MODEL_DIR, 'mentalbert_depression')
+    if os.path.exists(mb_dir) and _mentalbert_model is None:
+        try:
+            from transformers import AutoTokenizer, AutoModelForSequenceClassification
+            _mentalbert_tokenizer = AutoTokenizer.from_pretrained(mb_dir)
+            _mentalbert_model = AutoModelForSequenceClassification.from_pretrained(mb_dir)
+            _mentalbert_model.eval()
+            _use_mentalbert = True
+            print("[INFO] MentalBERT loaded successfully for linguistic branch.")
+        except Exception as e:
+            print(f"[WARN] Failed loading MentalBERT: {e}. Falling back to TF-IDF ensemble.")
+            _use_mentalbert = False
 
 def clean_text(text: str) -> str:
     text = str(text).lower()
@@ -114,11 +135,26 @@ def predict_multimodal(raw_input: dict) -> dict:
     has_text = len(text) >= 15
     if has_text:
         clean = clean_text(text)
-        text_vec = _tfidf.transform([clean])
-        text_probs = _text_model.predict_proba(text_vec)[0]
-        # align probabilities with ['Normal', 'Mild', 'Moderate', 'Severe']
-        text_classes = list(_text_model.classes_)
-        p_text = np.array([text_probs[text_classes.index(c)] for c in _classes])
+        if _use_mentalbert and _mentalbert_model is not None:
+            import torch
+            with torch.no_grad():
+                encoded = _mentalbert_tokenizer(
+                    clean,
+                    truncation=True,
+                    padding=True,
+                    max_length=128,
+                    return_tensors='pt'
+                )
+                outputs = _mentalbert_model(**encoded)
+                probs = torch.softmax(outputs.logits, dim=1).cpu().numpy()[0]
+                id2label = _mentalbert_model.config.id2label
+                p_text = np.array([probs[int(k)] for k in sorted(id2label.keys(), key=lambda x: _classes.index(id2label[int(x)]))])
+        else:
+            text_vec = _tfidf.transform([clean])
+            text_probs = _text_model.predict_proba(text_vec)[0]
+            # align probabilities with ['Normal', 'Mild', 'Moderate', 'Severe']
+            text_classes = list(_text_model.classes_)
+            p_text = np.array([text_probs[text_classes.index(c)] for c in _classes])
     else:
         # Uniform prior if no text provided
         p_text = np.array([0.25, 0.25, 0.25, 0.25])
@@ -178,25 +214,61 @@ def predict_multimodal(raw_input: dict) -> dict:
         }
     }
 
-    # 4. Real XAI Signal Contribution Estimation
-    # Derived from model feature activations and modality weights
-    autonomic_contrib = float(feat_dict['Autonomic_Load'])
-    cardiac_contrib   = float(feat_dict['HR_to_HRV_Ratio'])
-    sleep_contrib     = float(max(0, 8.0 - feat_dict['Sleep_Duration_Hours']) * 10)
-    sed_contrib       = float(feat_dict['Sedentary_Time_Hours'] * 5)
-    resp_contrib      = float(abs(feat_dict['Respiration_Rate_BPM'] - 16.0) * 8)
-    text_contrib      = float(alpha * 100)
+    # 4. Real XAI — SHAP TreeExplainer on XGBoost sub-model
+    # Extract the XGBoost estimator from the VotingClassifier
+    try:
+        import shap
+        xgb_model = _wearable_model.named_estimators_['xgb']
 
-    raw_contributions = {
-        'Autonomic Arousal (EDA)': autonomic_contrib,
-        'Cardiac Stress (HR/HRV)': cardiac_contrib,
-        'Sleep Deprivation Risk':  sleep_contrib,
-        'Sedentary Inactivity':    sed_contrib,
-        'Respiratory Pattern':     resp_contrib,
-        'Linguistic Depth (NLP)':  text_contrib
-    }
-    total_val = sum(raw_contributions.values()) or 1.0
-    norm_contributions = {k: int(round((v / total_val) * 100)) for k, v in raw_contributions.items()}
+        # Build a SHAP explainer and get values for this single sample
+        explainer   = shap.TreeExplainer(xgb_model)
+        shap_values = explainer.shap_values(wearable_scaled)  # shape: (n_classes, n_features)
+
+        # Use the predicted class's SHAP values (absolute = contribution magnitude)
+        pred_class_idx  = list(le.classes_).index(pred_label) if pred_label in list(le.classes_) else 0
+        sample_shap     = np.abs(shap_values[pred_class_idx][0])   # 1-D array, one value per feature
+
+        feat_names = _wearable_features  # ordered list of feature names
+
+        # Map features → 6 clinical signal groups
+        group_map = {
+            'Autonomic Arousal (EDA)': ['EDA_Level_uS', 'Autonomic_Load', 'Digital_Saturation'],
+            'Cardiac Stress (HR/HRV)': ['Heart_Rate_BPM', 'HRV_ms', 'HR_to_HRV_Ratio', 'Cardio_Resp_Ratio', 'Autonomic_Load'],
+            'Sleep Deprivation Risk':  ['Sleep_Duration_Hours', 'Sleep_Efficiency_Percentage', 'Deep_Sleep_Percentage', 'Sleep_Quality_Index'],
+            'Sedentary Inactivity':    ['Sedentary_Time_Hours', 'Sedentary_to_Sleep_Ratio', 'Step_to_Sedentary_Ratio', 'Daily_Steps', 'Physical_Activity_Minutes'],
+            'Respiratory Pattern':     ['Respiration_Rate_BPM'],
+        }
+
+        # Sum SHAP magnitudes per group
+        shap_dict = dict(zip(feat_names, sample_shap))
+        group_shap = {}
+        for group, members in group_map.items():
+            group_shap[group] = sum(shap_dict.get(f, 0.0) for f in members)
+
+        # Linguistic Depth: use alpha weight (text model is not tree-based)
+        group_shap['Linguistic Depth (NLP)'] = alpha * max(group_shap.values()) if group_shap else alpha * 10.0
+
+        total_shap = sum(group_shap.values()) or 1.0
+        norm_contributions = {k: int(round((v / total_shap) * 100)) for k, v in group_shap.items()}
+
+    except Exception as e:
+        # Graceful fallback to heuristics if SHAP fails
+        autonomic_contrib = float(feat_dict['Autonomic_Load'])
+        cardiac_contrib   = float(feat_dict['HR_to_HRV_Ratio'])
+        sleep_contrib     = float(max(0, 8.0 - feat_dict['Sleep_Duration_Hours']) * 10)
+        sed_contrib       = float(feat_dict['Sedentary_Time_Hours'] * 5)
+        resp_contrib      = float(abs(feat_dict['Respiration_Rate_BPM'] - 16.0) * 8)
+        text_contrib      = float(alpha * 100)
+        raw_contributions = {
+            'Autonomic Arousal (EDA)': autonomic_contrib,
+            'Cardiac Stress (HR/HRV)': cardiac_contrib,
+            'Sleep Deprivation Risk':  sleep_contrib,
+            'Sedentary Inactivity':    sed_contrib,
+            'Respiratory Pattern':     resp_contrib,
+            'Linguistic Depth (NLP)':  text_contrib
+        }
+        total_val = sum(raw_contributions.values()) or 1.0
+        norm_contributions = {k: int(round((v / total_val) * 100)) for k, v in raw_contributions.items()}
 
     return {
         'severity': pred_label + (" Depression" if pred_label != "Normal" else ""),

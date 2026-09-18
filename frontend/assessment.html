@@ -378,132 +378,277 @@
       <!-- ================= STEP 2: WEARABLE PHYSIOLOGY ================= -->
       <div class="wizard-step" id="step-2" style="display: none;">
         <div class="step-header">
-          <div class="badge">Modality 02 • Wearable Biosignals</div>
-          <h2>Physiological & Behavioral Signals</h2>
-          <p class="step-desc">
-            Simulated wearable sensor readings. Adjust physiological vitals, sleep patterns, and activity biomarkers to model different patient profiles.
-          </p>
+          <div class="badge">Modality 02 &bull; Wearable Biosignals</div>
+          <h2>Physiological &amp; Behavioral Signals</h2>
+          <p class="step-desc">Adjust physiological vitals, sleep patterns, and activity biomarkers to model different patient profiles.</p>
         </div>
 
         <div class="card wizard-card">
+          <!-- Quick Presets -->
           <div class="preset-selector-bar">
             <span class="preset-label">Quick Presets:</span>
             <button type="button" class="preset-pill" id="preset-calm">Healthy / Baseline</button>
             <button type="button" class="preset-pill" id="preset-stressed">High Risk / Dysregulated</button>
           </div>
 
-          <!-- Sensor Sliders Grid -->
-          <div class="sensors-grid">
+          <style>
+            .hud-sensors-grid {
+              display: grid; grid-template-columns: repeat(2, 1fr);
+              gap: 1.5rem; margin: 1.5rem 0;
+            }
+            .hud-sensor-card {
+              position: relative; padding: 1.2rem 1.4rem 1.4rem;
+              background: rgba(8,14,24,0.5); border-radius: 2px; transition: background 0.3s;
+            }
+            .hud-sensor-card:hover { background: rgba(14,22,36,0.8); }
+            .hud-sensor-card::before {
+              content:''; position:absolute; top:0; left:0; width:12px; height:12px;
+              border-top:1px solid rgba(255,255,255,0.12); border-left:1px solid rgba(255,255,255,0.12); transition:all 0.3s;
+            }
+            .hud-sensor-card::after {
+              content:''; position:absolute; bottom:0; right:0; width:12px; height:12px;
+              border-bottom:1px solid rgba(255,255,255,0.12); border-right:1px solid rgba(255,255,255,0.12); transition:all 0.3s;
+            }
+            .hud-sensor-card:hover::before, .hud-sensor-card:hover::after {
+              border-color:rgba(100,184,173,0.8); width:20px; height:20px;
+            }
+            .hud-sensor-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+            .hud-sensor-icon-label { display:flex; align-items:center; gap:0.45rem; }
+            .hud-sensor-icon { font-size:1rem; }
+            .hud-sensor-label {
+              font-family:'JetBrains Mono',monospace; font-size:0.67rem;
+              letter-spacing:0.12em; text-transform:uppercase; color:#82919e;
+            }
+            .hud-sensor-val-box { display:flex; align-items:baseline; gap:0.3rem; }
+            .hud-sensor-numval {
+              font-family:'JetBrains Mono',monospace; font-size:1.3rem; font-weight:700; color:#fff;
+              background:transparent; border:none; border-bottom:1px solid rgba(100,184,173,0.3);
+              outline:none; width:62px; text-align:right; padding:0 2px 2px; transition:border-color 0.2s;
+            }
+            .hud-sensor-numval:focus { border-color:rgba(100,184,173,0.9); }
+            .hud-sensor-unit { font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:#5a6b7c; }
+            .hud-range {
+              -webkit-appearance:none; appearance:none; width:100%; height:1px;
+              background:rgba(255,255,255,0.12); outline:none; border:none; cursor:pointer;
+            }
+            .hud-range::-webkit-slider-thumb {
+              -webkit-appearance:none; width:10px; height:10px; border-radius:50%;
+              background:#fff; box-shadow:0 0 8px 2px rgba(100,184,173,0.9); cursor:pointer; transition:transform 0.15s;
+            }
+            .hud-range:hover::-webkit-slider-thumb { transform:scale(1.5); }
+            .hud-range::-moz-range-thumb {
+              width:10px; height:10px; border-radius:50%; background:#fff; border:none;
+              box-shadow:0 0 8px 2px rgba(100,184,173,0.9); cursor:pointer;
+            }
+            .hud-sensor-scale {
+              display:flex; justify-content:space-between; margin-top:0.5rem;
+              font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#3a4a58; letter-spacing:0.05em;
+            }
+            .hud-status-dot {
+              width:6px; height:6px; border-radius:50%; flex-shrink:0;
+              background:rgba(100,184,173,0.8); box-shadow:0 0 6px 2px rgba(100,184,173,0.5);
+              transition:background 0.4s, box-shadow 0.4s;
+            }
+            @media (max-width:700px) { .hud-sensors-grid { grid-template-columns:1fr; } }
+          </style>
+
+          <!-- HUD Sensor Cards Grid -->
+          <div class="hud-sensors-grid" id="hud-sensors-grid">
 
             <!-- Heart Rate -->
-            <div class="sensor-control">
-              <div class="sensor-header">
-                <span class="sensor-title">❤️ Heart Rate</span>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                  <input type="number" class="sensor-num-input" id="num-hr" min="45" max="150" value="74" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <input type="number" class="manual-input" id="num-hr" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-hr" style="font-size: 0.75rem; color: #82919e;"><small>bpm</small></span>
+            <div class="hud-sensor-card">
+              <div class="hud-sensor-top">
+                <div class="hud-sensor-icon-label">
+                  <span class="hud-status-dot" id="dot-hr"></span>
+                  <span class="hud-sensor-icon">&#10084;&#65039;</span>
+                  <span class="hud-sensor-label">Heart Rate</span>
+                </div>
+                <div class="hud-sensor-val-box">
+                  <input type="number" class="hud-sensor-numval sensor-num-input" id="num-hr" min="45" max="150" value="74" />
+                  <span class="hud-sensor-unit">bpm</span>
                 </div>
               </div>
-              <input type="range" class="range-slider" id="input-hr" min="45" max="150" value="74" />
-              <div class="sensor-scale"><span>45 bpm</span><span>150 bpm</span></div>
+              <input type="range" class="hud-range" id="input-hr" min="45" max="150" value="74" />
+              <div class="hud-sensor-scale"><span>45 bpm</span><span>150 bpm</span></div>
+              <span class="sensor-value" id="val-hr" style="display:none">74</span>
             </div>
 
             <!-- HRV -->
-            <div class="sensor-control">
-              <div class="sensor-header">
-                <span class="sensor-title">💓 HRV (ms)</span>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                  <input type="number" class="sensor-num-input" id="num-hrv" min="10" max="80" value="40" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <input type="number" class="manual-input" id="num-hrv" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-hrv" style="font-size: 0.75rem; color: #82919e;"><small>ms</small></span>
+            <div class="hud-sensor-card">
+              <div class="hud-sensor-top">
+                <div class="hud-sensor-icon-label">
+                  <span class="hud-status-dot" id="dot-hrv"></span>
+                  <span class="hud-sensor-icon">&#128147;</span>
+                  <span class="hud-sensor-label">HRV</span>
+                </div>
+                <div class="hud-sensor-val-box">
+                  <input type="number" class="hud-sensor-numval sensor-num-input" id="num-hrv" min="10" max="80" value="40" />
+                  <span class="hud-sensor-unit">ms</span>
                 </div>
               </div>
-              <input type="range" class="range-slider" id="input-hrv" min="10" max="80" value="40" />
-              <div class="sensor-scale"><span>10 ms</span><span>80 ms</span></div>
+              <input type="range" class="hud-range" id="input-hrv" min="10" max="80" value="40" />
+              <div class="hud-sensor-scale"><span>10 ms</span><span>80 ms</span></div>
+              <span class="sensor-value" id="val-hrv" style="display:none">40</span>
             </div>
 
-            <!-- EDA -->
-            <div class="sensor-control">
-              <div class="sensor-header">
-                <span class="sensor-title">⚡ Skin Conductance</span>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                  <input type="number" step="0.1" class="sensor-num-input" id="num-eda" min="0.1" max="15.0" value="4.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <input type="number" class="manual-input" id="num-eda" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-eda" style="font-size: 0.75rem; color: #82919e;"><small>µS</small></span>
+            <!-- Skin Conductance (EDA) -->
+            <div class="hud-sensor-card">
+              <div class="hud-sensor-top">
+                <div class="hud-sensor-icon-label">
+                  <span class="hud-status-dot" id="dot-eda"></span>
+                  <span class="hud-sensor-icon">&#9889;</span>
+                  <span class="hud-sensor-label">Skin Conductance (EDA)</span>
+                </div>
+                <div class="hud-sensor-val-box">
+                  <input type="number" step="0.1" class="hud-sensor-numval sensor-num-input" id="num-eda" min="0.1" max="15.0" value="4.0" />
+                  <span class="hud-sensor-unit">&#181;S</span>
                 </div>
               </div>
-              <input type="range" class="range-slider" id="input-eda" min="0.1" max="15.0" step="0.1" value="4.0" />
-              <div class="sensor-scale"><span>0.1 µS</span><span>15.0 µS</span></div>
+              <input type="range" class="hud-range" id="input-eda" min="0.1" max="15.0" step="0.1" value="4.0" />
+              <div class="hud-sensor-scale"><span>0.1</span><span>15.0 &#181;S</span></div>
+              <span class="sensor-value" id="val-eda" style="display:none">4.0</span>
             </div>
 
             <!-- Skin Temperature -->
-            <div class="sensor-control">
-              <div class="sensor-header">
-                <span class="sensor-title">🌡️ Skin Temperature</span>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                  <input type="number" step="0.1" class="sensor-num-input" id="num-temp" min="28.0" max="38.0" value="33.5" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <input type="number" class="manual-input" id="num-temp" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-temp" style="font-size: 0.75rem; color: #82919e;"><small>°C</small></span>
+            <div class="hud-sensor-card">
+              <div class="hud-sensor-top">
+                <div class="hud-sensor-icon-label">
+                  <span class="hud-status-dot" id="dot-temp"></span>
+                  <span class="hud-sensor-icon">&#127777;&#65039;</span>
+                  <span class="hud-sensor-label">Skin Temperature</span>
+                </div>
+                <div class="hud-sensor-val-box">
+                  <input type="number" step="0.1" class="hud-sensor-numval sensor-num-input" id="num-temp" min="28.0" max="38.0" value="33.5" />
+                  <span class="hud-sensor-unit">&#176;C</span>
                 </div>
               </div>
-              <input type="range" class="range-slider" id="input-temp" min="28.0" max="38.0" step="0.1" value="33.5" />
-              <div class="sensor-scale"><span>28 °C</span><span>38 °C</span></div>
+              <input type="range" class="hud-range" id="input-temp" min="28.0" max="38.0" step="0.1" value="33.5" />
+              <div class="hud-sensor-scale"><span>28 &#176;C</span><span>38 &#176;C</span></div>
+              <span class="sensor-value" id="val-temp" style="display:none">33.5</span>
             </div>
 
             <!-- Respiration Rate -->
-            <div class="sensor-control">
-              <div class="sensor-header">
-                <span class="sensor-title">🫁 Respiration Rate</span>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                  <input type="number" class="sensor-num-input" id="num-resp" min="8" max="30" value="16" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <input type="number" class="manual-input" id="num-resp" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-resp" style="font-size: 0.75rem; color: #82919e;"><small>bpm</small></span>
+            <div class="hud-sensor-card">
+              <div class="hud-sensor-top">
+                <div class="hud-sensor-icon-label">
+                  <span class="hud-status-dot" id="dot-resp"></span>
+                  <span class="hud-sensor-icon">&#129409;</span>
+                  <span class="hud-sensor-label">Respiration Rate</span>
+                </div>
+                <div class="hud-sensor-val-box">
+                  <input type="number" class="hud-sensor-numval sensor-num-input" id="num-resp" min="8" max="30" value="16" />
+                  <span class="hud-sensor-unit">bpm</span>
                 </div>
               </div>
-              <input type="range" class="range-slider" id="input-resp" min="8" max="30" value="16" />
-              <div class="sensor-scale"><span>8 bpm</span><span>30 bpm</span></div>
+              <input type="range" class="hud-range" id="input-resp" min="8" max="30" value="16" />
+              <div class="hud-sensor-scale"><span>8 bpm</span><span>30 bpm</span></div>
+              <span class="sensor-value" id="val-resp" style="display:none">16</span>
             </div>
 
             <!-- Sleep Duration -->
-            <div class="sensor-control">
-              <div class="sensor-header">
-                <span class="sensor-title">😴 Sleep Duration</span>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                  <input type="number" step="0.1" class="sensor-num-input" id="num-sleep" min="2.0" max="12.0" value="7.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <input type="number" class="manual-input" id="num-sleep" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-sleep" style="font-size: 0.75rem; color: #82919e;"><small>hrs</small></span>
+            <div class="hud-sensor-card">
+              <div class="hud-sensor-top">
+                <div class="hud-sensor-icon-label">
+                  <span class="hud-status-dot" id="dot-sleep"></span>
+                  <span class="hud-sensor-icon">&#128564;</span>
+                  <span class="hud-sensor-label">Sleep Duration</span>
+                </div>
+                <div class="hud-sensor-val-box">
+                  <input type="number" step="0.1" class="hud-sensor-numval sensor-num-input" id="num-sleep" min="2.0" max="12.0" value="7.0" />
+                  <span class="hud-sensor-unit">hrs</span>
                 </div>
               </div>
-              <input type="range" class="range-slider" id="input-sleep" min="2.0" max="12.0" step="0.1" value="7.0" />
-              <div class="sensor-scale"><span>2 hrs</span><span>12 hrs</span></div>
+              <input type="range" class="hud-range" id="input-sleep" min="2.0" max="12.0" step="0.1" value="7.0" />
+              <div class="hud-sensor-scale"><span>2 hrs</span><span>12 hrs</span></div>
+              <span class="sensor-value" id="val-sleep" style="display:none">7.0</span>
             </div>
 
             <!-- Daily Steps -->
-            <div class="sensor-control">
-              <div class="sensor-header">
-                <span class="sensor-title">👟 Daily Steps</span>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                  <input type="number" step="100" class="sensor-num-input" id="num-steps" min="500" max="18000" value="5500" style="width: 68px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <input type="number" class="manual-input" id="num-steps" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-steps" style="font-size: 0.75rem; color: #82919e;"><small>steps</small></span>
+            <div class="hud-sensor-card">
+              <div class="hud-sensor-top">
+                <div class="hud-sensor-icon-label">
+                  <span class="hud-status-dot" id="dot-steps"></span>
+                  <span class="hud-sensor-icon">&#128095;</span>
+                  <span class="hud-sensor-label">Daily Steps</span>
+                </div>
+                <div class="hud-sensor-val-box">
+                  <input type="number" step="100" class="hud-sensor-numval sensor-num-input" id="num-steps" min="500" max="18000" value="5500" style="width:76px;" />
+                  <span class="hud-sensor-unit">steps</span>
                 </div>
               </div>
-              <input type="range" class="range-slider" id="input-steps" min="500" max="18000" step="100" value="5500" />
-              <div class="sensor-scale"><span>500</span><span>18,000</span></div>
+              <input type="range" class="hud-range" id="input-steps" min="500" max="18000" step="100" value="5500" />
+              <div class="hud-sensor-scale"><span>500</span><span>18,000</span></div>
+              <span class="sensor-value" id="val-steps" style="display:none">5500</span>
             </div>
 
             <!-- Sedentary Time -->
-            <div class="sensor-control">
-              <div class="sensor-header">
-                <span class="sensor-title">🪑 Sedentary Time</span>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                  <input type="number" step="0.1" class="sensor-num-input" id="num-sedentary" min="2.0" max="16.0" value="8.0" style="width: 58px; background: rgba(8,15,24,0.85); border: 1px solid rgba(229,189,115,0.4); color: var(--gold); border-radius: 6px; padding: 0.15rem 0.3rem; font-family: var(--font-mono); font-size: 0.82rem; text-align: right;" />
-                  <input type="number" class="manual-input" id="num-sedentary" style="width: 50px; background: transparent; border: 1px solid rgba(100,184,173,0.5); color: #fff; border-radius: 4px; padding: 2px 4px; font-family: monospace; text-align:right;" /> <span class="sensor-value" id="val-sedentary" style="font-size: 0.75rem; color: #82919e;"><small>hrs</small></span>
+            <div class="hud-sensor-card">
+              <div class="hud-sensor-top">
+                <div class="hud-sensor-icon-label">
+                  <span class="hud-status-dot" id="dot-sedentary"></span>
+                  <span class="hud-sensor-icon">&#129105;</span>
+                  <span class="hud-sensor-label">Sedentary Time</span>
+                </div>
+                <div class="hud-sensor-val-box">
+                  <input type="number" step="0.1" class="hud-sensor-numval sensor-num-input" id="num-sedentary" min="2.0" max="16.0" value="8.0" />
+                  <span class="hud-sensor-unit">hrs</span>
                 </div>
               </div>
-              <input type="range" class="range-slider" id="input-sedentary" min="2.0" max="16.0" step="0.1" value="8.0" />
-              <div class="sensor-scale"><span>2 hrs</span><span>16 hrs</span></div>
+              <input type="range" class="hud-range" id="input-sedentary" min="2.0" max="16.0" step="0.1" value="8.0" />
+              <div class="hud-sensor-scale"><span>2 hrs</span><span>16 hrs</span></div>
+              <span class="sensor-value" id="val-sedentary" style="display:none">8.0</span>
             </div>
 
-          </div>
+          </div><!-- /hud-sensors-grid -->
+
+          <script>
+            (function() {
+              var sensors = [
+                {id:'hr',       low:60,   high:90,   inv:true },
+                {id:'hrv',      low:30,   high:60,   inv:false},
+                {id:'eda',      low:2,    high:6,    inv:true },
+                {id:'temp',     low:30,   high:36,   inv:false},
+                {id:'resp',     low:12,   high:20,   inv:true },
+                {id:'sleep',    low:6,    high:9,    inv:false},
+                {id:'steps',    low:3000, high:8000, inv:false},
+                {id:'sedentary',low:6,    high:10,   inv:true }
+              ];
+              sensors.forEach(function(s) {
+                var slider = document.getElementById('input-'+s.id);
+                var numEl  = document.getElementById('num-'+s.id);
+                var dot    = document.getElementById('dot-'+s.id);
+                var valEl  = document.getElementById('val-'+s.id);
+                if(!slider || !numEl) return;
+                function updateDot(v) {
+                  if(!dot) return;
+                  var val = parseFloat(v), status = 'good';
+                  if(s.inv){ if(val>s.high) status='bad'; else if(val>s.low) status='mid'; }
+                  else     { if(val<s.low)  status='bad'; else if(val<s.high) status='mid'; }
+                  var c = {good:['rgba(100,184,173,0.9)','rgba(100,184,173,0.5)'],mid:['rgba(229,189,115,0.9)','rgba(229,189,115,0.5)'],bad:['rgba(255,90,90,0.9)','rgba(255,90,90,0.5)']};
+                  dot.style.background = c[status][0];
+                  dot.style.boxShadow  = '0 0 6px 2px '+c[status][1];
+                }
+                slider.addEventListener('input', function(){
+                  numEl.value = slider.value;
+                  if(valEl) valEl.innerText = slider.value;
+                  updateDot(slider.value);
+                });
+                numEl.addEventListener('input', function(){
+                  var v = parseFloat(numEl.value);
+                  if(isNaN(v)) return;
+                  v = Math.min(Math.max(v, parseFloat(slider.min)), parseFloat(slider.max));
+                  slider.value = v;
+                  if(valEl) valEl.innerText = v;
+                  updateDot(v);
+                });
+                updateDot(slider.value);
+              });
+            })();
+          </script>
 
           <div class="step-actions">
-            <button type="button" class="btn btn-secondary" id="btn-back-to-1">← Back to Text</button>
-            <button type="button" class="btn btn-hero" id="btn-to-step-3">Proceed to Synthesis →</button>
+            <button type="button" class="btn btn-secondary" id="btn-back-to-1">&#8592; Back to Text</button>
+            <button type="button" class="btn btn-hero" id="btn-to-step-3">Proceed to Synthesis &#8594;</button>
           </div>
         </div>
       </div>

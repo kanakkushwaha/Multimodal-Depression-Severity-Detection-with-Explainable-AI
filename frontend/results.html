@@ -12,7 +12,7 @@
 
   <style>
     :root {
-      --bg-dark: #050a10;
+      --bg-dark: #030508;
       --glass-bg: rgba(12, 20, 32, 0.6);
       --glass-border: rgba(255, 255, 255, 0.08);
       --accent-rgb: 100, 184, 173;
@@ -25,7 +25,7 @@
       margin: 0; padding: 0;
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 50% 30%, rgba(var(--accent-rgb), 0.1) 0%, transparent 60%),
+        radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.05) 0%, transparent 70%),
         url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.03"/></svg>');
       color: var(--text-main);
       font-family: 'Inter', sans-serif;
@@ -43,10 +43,6 @@
       20% { opacity: 1; }
       80% { opacity: 1; }
       100% { stroke-dashoffset: 0; opacity: 0; }
-    }
-    @keyframes floatY {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
     }
     @keyframes scanAnim { to { left: 200%; } }
 
@@ -92,7 +88,7 @@
 
     /* Background Waves */
     .signal-field-bg {
-      position: absolute; top: 0; left: 0; width: 100%; height: 600px; z-index: 0; opacity: 0.4;
+      position: absolute; top: 0; left: 0; width: 100%; height: 600px; z-index: 0; opacity: 0.2;
     }
     .wave-line {
       fill: none; stroke: rgba(var(--accent-rgb), 0.15); stroke-width: 1.5;
@@ -116,16 +112,16 @@
       pointer-events: none; z-index: 0;
     }
     .data-stream {
-      fill: none; stroke: rgba(var(--accent-rgb), 0.8); stroke-width: 2;
-      stroke-dasharray: 6 20; stroke-linecap: round;
-      animation: dataFlow 2s infinite linear;
+      fill: none; stroke: rgba(var(--accent-rgb), 0.8); stroke-width: 1.5;
+      stroke-dasharray: 4 12; stroke-linecap: round;
+      animation: dataFlow 3s infinite linear;
     }
     .data-path {
-      fill: none; stroke: rgba(var(--accent-rgb), 0.15); stroke-width: 1;
+      fill: none; stroke: rgba(var(--accent-rgb), 0.2); stroke-width: 1;
     }
 
     .cards-col {
-      display: flex; flex-direction: column; gap: 1.5rem;
+      display: flex; flex-direction: column; gap: 2rem;
       position: relative; z-index: 10;
     }
     
@@ -141,8 +137,8 @@
     }
     .ai-orb {
       position: absolute; width: 180px; height: 180px; border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, rgba(var(--accent-rgb), 0.4), rgba(10,20,30,0.8) 70%);
-      border: 1px solid rgba(var(--accent-rgb), 0.5);
+      background: radial-gradient(circle at 30% 30%, rgba(var(--accent-rgb), 0.2), rgba(0,0,0,0.8) 70%);
+      border: 1px solid rgba(var(--accent-rgb), 0.3);
       backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       animation: pulseGlow 4s infinite ease-in-out;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -153,20 +149,20 @@
       letter-spacing: 0.1em; margin-bottom: 0.2rem;
     }
     .orb-score-val {
-      font-size: 4rem; font-weight: 800; color: #fff; line-height: 1;
-      text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.8);
+      font-size: 4.5rem; font-weight: 800; color: #fff; line-height: 1;
+      text-shadow: 0 0 30px rgba(var(--accent-rgb), 1);
     }
 
     .orbital-ring {
       position: absolute; width: 100%; height: 100%; border-radius: 50%;
-      border: 1px solid rgba(var(--accent-rgb), 0.2);
-      border-top-color: rgba(var(--accent-rgb), 0.8);
-      border-bottom-color: rgba(var(--accent-rgb), 0.8);
+      border: 1px solid rgba(var(--accent-rgb), 0.15);
+      border-top-color: rgba(var(--accent-rgb), 0.6);
+      border-bottom-color: rgba(var(--accent-rgb), 0.6);
       transform-style: preserve-3d; transition: all 0.5s ease;
     }
     .ring-1 { animation: spin 12s linear infinite; width: 240px; height: 240px; }
     .ring-2 { animation: spinReverse 18s linear infinite; width: 280px; height: 280px; transform: rotateX(60deg) rotateY(20deg); }
-    .ring-3 { animation: spin 24s linear infinite; width: 320px; height: 320px; transform: rotateX(40deg) rotateY(-40deg); border-top-color: transparent; border-left-color: rgba(var(--accent-rgb),0.5); }
+    .ring-3 { animation: spin 24s linear infinite; width: 320px; height: 320px; transform: rotateX(40deg) rotateY(-40deg); border-top-color: transparent; border-left-color: rgba(var(--accent-rgb),0.4); }
 
     /* When orbiting speeds up on hover */
     .orb-fast .ring-1 { animation-duration: 4s; }
@@ -184,46 +180,55 @@
       letter-spacing: 0.2em; margin-bottom: 0.5rem; text-transform: uppercase;
     }
     .severity-title {
-      font-size: 2.5rem; font-weight: 800; letter-spacing: 0.05em;
+      font-size: 2.8rem; font-weight: 800; letter-spacing: 0.05em;
       text-transform: uppercase; color: #fff;
-      text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.6); margin-bottom: 0.2rem;
+      text-shadow: 0 0 30px rgba(var(--accent-rgb), 1); margin-bottom: 0.2rem;
     }
     .severity-level {
-      font-family: var(--font-mono); color: #e5bd73; font-size: 0.9rem;
+      font-family: var(--font-mono); color: rgb(var(--accent-rgb)); font-size: 0.9rem; letter-spacing: 0.05em;
     }
 
-    /* Holographic HUD Nodes */
+    /* Floating HUD Cards */
     .contrib-card {
-      position: relative; padding: 1.5rem 1rem; background: transparent;
-      color: #fff; display: flex; flex-direction: column; gap: 0.5rem;
-      opacity: 0; transform: translateY(20px); transition: opacity 0.8s, transform 0.8s;
-      animation: floatY 6s infinite ease-in-out; cursor: default;
+      background: transparent; border: none;
+      border-radius: 0; padding: 1.5rem 1rem; position: relative; overflow: visible;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: default; opacity: 0; transform: translateY(20px);
     }
     .contrib-card.visible { opacity: 1; transform: translateY(0); }
     
-    .contrib-card::before, .contrib-card::after {
-      content: ''; position: absolute; width: 25px; height: 25px;
-      border: 2px solid rgba(var(--accent-rgb), 0.3); transition: all 0.4s ease;
-      pointer-events: none;
+    .contrib-card:hover {
+      background: rgba(255,255,255,0.01);
+      transform: translateY(-5px) scale(1.02) !important;
+      z-index: 20;
     }
-    .contrib-card::before { top: 0; left: 0; border-right: none; border-bottom: none; }
-    .contrib-card::after { bottom: 0; right: 0; border-left: none; border-top: none; }
-    
-    .contrib-card:hover::before, .contrib-card:hover::after {
-      width: 100%; height: 100%; border-color: rgba(var(--accent-rgb), 0.8);
-      background: radial-gradient(circle at center, rgba(var(--accent-rgb), 0.05), transparent);
+    /* Corner Brackets */
+    .contrib-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 15px; height: 15px;
+      background: transparent; opacity: 1; transition: all 0.3s;
+      border-top: 1px solid rgba(255,255,255,0.2); border-left: 1px solid rgba(255,255,255,0.2);
     }
-    .contrib-card:hover { z-index: 20; }
+    .contrib-card::after {
+      content: ''; position: absolute; bottom: 0; right: 0; width: 15px; height: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.2); border-right: 1px solid rgba(255,255,255,0.2);
+      transition: all 0.3s;
+    }
+    .contrib-card:hover::before, .contrib-card:hover::after { 
+      border-color: rgb(var(--accent-rgb)); width: 25px; height: 25px; 
+    }
     
-    .cc-header { display: flex; justify-content: space-between; align-items: baseline; }
-    .cc-icon { font-size: 1.2rem; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-    .cc-val { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8); }
-    .cc-title { font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .cc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .cc-icon { font-size: 1.2rem; }
+    .cc-val { font-family: var(--font-mono); font-size: 1.1rem; color: #fff; font-weight: 600; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+    .cc-title { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: #82919e; font-weight: 500; margin-bottom: 0.8rem; }
     
-    .cc-progress-bg { width: 100%; height: 1px; background: rgba(255,255,255,0.15); position: relative; margin: 0.5rem 0; }
-    .cc-progress-fill { height: 100%; background: rgb(var(--accent-rgb)); box-shadow: 0 0 10px rgb(var(--accent-rgb)); width: 0; position: relative; transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
-    .cc-progress-fill::after { content: ''; position: absolute; right: 0; top: -2px; width: 5px; height: 5px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px rgb(var(--accent-rgb)); }
-    .cc-pct { font-family: var(--font-mono); font-size: 0.7rem; color: rgb(var(--accent-rgb)); text-align: right; letter-spacing: 0.1em; }
+    .cc-progress-bg { width: 100%; height: 1px; background: rgba(255,255,255,0.15); border-radius: 0; overflow: visible; margin-bottom: 0.5rem; position: relative; }
+    .cc-progress-fill { height: 100%; background: rgb(var(--accent-rgb)); width: 0; border-radius: 0; transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
+    .cc-progress-fill::after {
+      content: ''; position: absolute; right: -3px; top: -3px; width: 7px; height: 7px;
+      background: #fff; border-radius: 50%; box-shadow: 0 0 8px rgb(var(--accent-rgb));
+    }
+    .cc-pct { font-family: var(--font-mono); font-size: 0.7rem; color: rgb(var(--accent-rgb)); text-align: right; letter-spacing: 0.05em; }
 
     /* Other Sections */
     .section-header {
@@ -238,84 +243,20 @@
     .section-header::before { margin-left: -80px; }
     .section-header::after { margin-left: 20px; }
 
-    
-    /* LIVING AI PIPELINE CSS */
-    .ai-pipeline-wrapper { position: relative; max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 3rem; perspective: 1000px; }
-    .pipeline-track { position: absolute; left: 39px; top: 20px; bottom: 20px; width: 2px; background: rgba(255,255,255,0.05); z-index: 0; }
-    .pipeline-progress { position: absolute; top: 0; left: 0; width: 100%; height: 0%; background: linear-gradient(180deg, transparent, rgb(var(--accent-rgb))); box-shadow: 0 0 10px rgb(var(--accent-rgb)); transition: height 3s ease-out; }
-    .data-particle { position: absolute; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff, 0 0 20px rgb(var(--accent-rgb)); opacity: 0; }
-    @keyframes dropParticle { 0% { top: 0; opacity: 1; transform: scale(1); } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; transform: scale(0); } }
+    .pipeline-container { display: flex; flex-direction: column; gap: 1.5rem; max-width: 600px; margin: 0 auto; }
+    .pipeline-step {
+      display: flex; align-items: center; gap: 1.5rem; opacity: 0; transform: translateY(20px); transition: all 0.6s ease;
+    }
+    .pipeline-step.visible { opacity: 1; transform: translateY(0); }
+    .p-num { font-family: var(--font-mono); font-size: 1.2rem; color: rgba(var(--accent-rgb), 0.5); font-weight: 700; }
+    .p-card {
+      flex: 1; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px; padding: 1.2rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .p-title { font-weight: 600; color: #e2e8f0; font-size: 0.95rem; }
+    .p-icon { color: rgb(var(--accent-rgb)); font-size: 1.2rem; }
+    .p-connector { width: 2px; height: 30px; background: rgba(255,255,255,0.1); margin-left: 20px; }
 
-    .pipe-stage { display: flex; gap: 2rem; align-items: stretch; position: relative; z-index: 2; }
-    .stage-num-container { width: 80px; display: flex; justify-content: center; align-items: flex-start; position: relative; padding-top: 1rem; }
-    .stage-num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; color: rgba(255,255,255,0.1); transition: all 0.5s ease; }
-    .pipe-stage.active .stage-num { color: rgb(var(--accent-rgb)); text-shadow: 0 0 15px rgba(var(--accent-rgb),0.8); }
-    .stage-pulse { position: absolute; top: 1.2rem; left: 50%; transform: translateX(-50%); width: 40px; height: 40px; border: 1px solid rgb(var(--accent-rgb)); border-radius: 50%; opacity: 0; pointer-events: none; }
-    .pipe-stage.active .stage-pulse { animation: pulseCircle 1.5s ease-out; }
-    @keyframes pulseCircle { 0% { transform: translateX(-50%) scale(0.5); opacity: 1; } 100% { transform: translateX(-50%) scale(1.5); opacity: 0; } }
-
-    .stage-card { flex: 1; background: rgba(12, 20, 32, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1.5rem; position: relative; overflow: hidden; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transform-style: preserve-3d; transition: transform 0.2s ease-out, box-shadow 0.3s, border-color 0.3s, opacity 0.5s, filter 0.5s; opacity: 0.4; filter: grayscale(1); }
-    .pipe-stage.active .stage-card { opacity: 1; filter: grayscale(0); border-color: rgba(var(--accent-rgb), 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(var(--accent-rgb), 0.05); }
-
-    .holo-sweep { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.1), transparent); transform: skewX(-20deg); pointer-events: none; }
-    .pipe-stage.active .holo-sweep { animation: holoPass 4s infinite linear; }
-    @keyframes holoPass { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
-
-    .sc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; transform: translateZ(20px); }
-    .sc-title { font-weight: 700; color: #fff; letter-spacing: 0.05em; font-size: 1.05rem; }
-    .sc-icon { font-size: 1.5rem; color: rgba(255,255,255,0.5); transition: color 0.5s; }
-    .pipe-stage.active .sc-icon { color: rgb(var(--accent-rgb)); text-shadow: 0 0 10px rgba(var(--accent-rgb),0.8); }
-
-    .sc-body { font-family: var(--font-mono); font-size: 0.85rem; color: #82919e; min-height: 40px; transform: translateZ(15px); position: relative; }
-    .stage-raw { display: flex; gap: 1rem; flex-wrap: wrap; }
-    .raw-node { opacity: 0; transform: translateX(-10px); transition: all 0.5s; }
-    .pipe-stage.active .raw-node { opacity: 1; transform: translateX(0); }
-    .pipe-stage.active .raw-node:nth-child(1) { transition-delay: 0.1s; }
-    .pipe-stage.active .raw-node:nth-child(2) { transition-delay: 0.2s; }
-    .pipe-stage.active .raw-node:nth-child(3) { transition-delay: 0.3s; }
-    .pipe-stage.active .raw-node:nth-child(4) { transition-delay: 0.4s; }
-    .pipe-stage.active .raw-node:nth-child(5) { transition-delay: 0.5s; }
-
-    .feat-flow { display: flex; gap: 0.5rem; align-items: center; }
-    .feat-flow .arr { color: rgba(var(--accent-rgb), 0.5); }
-    .pipe-stage.active .icon-gear { display: inline-block; animation: spinGear 4s linear infinite; }
-    @keyframes spinGear { 100% { transform: rotate(360deg); } }
-
-    .stage-fusion { position: relative; }
-    .fusion-streams { line-height: 1.2; font-size: 0.75rem; white-space: pre; color: rgba(255,255,255,0.3); }
-    .pipe-stage.active .fusion-streams { color: rgba(var(--accent-rgb), 0.8); animation: pulseStream 2s infinite alternate; }
-    .mini-core { display: inline-block; padding: 2px 8px; border: 1px solid rgb(var(--accent-rgb)); border-radius: 4px; background: rgba(var(--accent-rgb),0.2); color: #fff; box-shadow: 0 0 10px rgba(var(--accent-rgb),0.5); }
-    @keyframes pulseStream { to { text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.8); } }
-
-    .stage-severity { display: flex; align-items: center; justify-content: flex-start; }
-    .sev-radar { position: relative; padding-left: 30px; }
-    .radar-ring { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border: 2px solid rgba(var(--accent-rgb),0.3); border-radius: 50%; }
-    .pipe-stage.active .radar-ring { border-color: rgb(var(--accent-rgb)); animation: radarPulse 1.5s infinite; }
-    .sev-result-text { font-weight: 700; color: #fff; letter-spacing: 0.1em; opacity: 0; }
-    .pipe-stage.active .sev-result-text { opacity: 1; transition: opacity 0.5s 1s; }
-    @keyframes radarPulse { 0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.7); } 70% { box-shadow: 0 0 0 10px rgba(var(--accent-rgb), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); } }
-
-    .stage-card[data-tooltip]::before { content: attr(data-tooltip); position: absolute; top: -40px; left: 50%; transform: translateX(-50%) translateY(10px); background: rgba(0,0,0,0.9); border: 1px solid rgba(var(--accent-rgb),0.5); padding: 0.5rem 1rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem; color: #fff; white-space: nowrap; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 100; }
-    .stage-card:hover::before { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    .sc-status { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; transform: translateZ(10px); }
-    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #555; }
-    .pipe-stage.active .status-dot { background: rgb(var(--accent-rgb)); box-shadow: 0 0 8px rgb(var(--accent-rgb)); animation: blink 1s infinite alternate; }
-    .pipe-stage.completed .status-dot { animation: none; box-shadow: none; background: #64b8ad; }
-    @keyframes blink { to { opacity: 0.3; } }
-
-    /* Explainable AI Grid */
-    .xai-section { max-width: 1000px; margin: 2rem auto 4rem; }
-    .xai-header { font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 2.5rem; color: #fff; text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8); letter-spacing: 0.1em; }
-    .xai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-    .xai-box { background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.08) 0%, rgba(10,20,30,0.6) 100%); border-top: 2px solid rgb(var(--accent-rgb)); border-radius: 8px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: transform 0.3s; }
-    .xai-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-    .xai-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50px; background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.15), transparent); pointer-events: none; }
-    .xai-box-title { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
-    .xai-box-value { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 1rem; line-height: 1.2; }
-    .xai-box-desc { font-size: 0.95rem; color: #b9c4cc; line-height: 1.5; }
-    @media(max-width: 768px) { .xai-grid { grid-template-columns: 1fr; } }
-    
     .story-card {
       text-align: center; font-size: 1.1rem; line-height: 1.8; color: #b9c4cc;
       max-width: 800px; margin: 0 auto;
@@ -334,6 +275,95 @@
     }
     .btn-return:hover { background: rgba(var(--accent-rgb), 0.2); border-color: rgb(var(--accent-rgb)); }
 
+    /* === EXPLAINABLE AI SECTION === */
+    .xai-narrative {
+      text-align: center; font-size: 0.9rem; line-height: 1.8; color: #8fa0ae;
+      max-width: 720px; margin: 0 auto 3rem; font-family: var(--font-mono); letter-spacing: 0.02em;
+    }
+    .xai-narrative strong { color: rgb(var(--accent-rgb)); font-weight: 600; }
+
+    /* XAI: side-by-side — radar left, bars right */
+    .xai-radar-wrapper {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 3rem;
+      justify-content: center;
+    }
+    .xai-radar-svg-container {
+      position: relative;
+      width: 380px; height: 380px;
+      flex-shrink: 0;
+    }
+    #xai-radar-svg { width: 100%; height: 100%; overflow: visible; }
+    .radar-grid { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 1; }
+    .radar-axis { stroke: rgba(255,255,255,0.07); stroke-width: 1; }
+    .radar-polygon {
+      fill: rgba(var(--accent-rgb), 0.12); stroke: rgb(var(--accent-rgb));
+      stroke-width: 1.5; opacity: 0; transition: opacity 1.5s ease;
+    }
+    .radar-polygon.visible { opacity: 1; }
+    .radar-dot {
+      fill: #fff;
+      filter: drop-shadow(0 0 5px rgb(var(--accent-rgb)));
+      opacity: 0; transition: opacity 1s ease;
+    }
+    .radar-dot.visible { opacity: 1; }
+    .radar-label {
+      font-family: var(--font-mono); font-size: 10px; fill: #82919e;
+      letter-spacing: 0.06em; text-anchor: middle; dominant-baseline: middle;
+    }
+    .radar-label-val {
+      font-family: var(--font-mono); font-size: 9px; fill: rgb(var(--accent-rgb));
+      text-anchor: middle; dominant-baseline: middle; font-weight: 600;
+    }
+
+    /* 2-column bar grid — right side */
+    .xai-bars-col {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.4rem 2rem;
+      align-content: start;
+      min-width: 0;
+    }
+    .xai-bar-item {
+      position: relative; padding: 1rem 1.2rem;
+      opacity: 0; transform: translateY(12px);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .xai-bar-item.visible { opacity: 1; transform: translateY(0); }
+    .xai-bar-item::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 10px; height: 10px;
+      border-top: 1px solid rgba(255,255,255,0.12); border-left: 1px solid rgba(255,255,255,0.12); transition: all 0.3s;
+    }
+    .xai-bar-item::after {
+      content: ''; position: absolute; bottom: 0; right: 0; width: 10px; height: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.12); border-right: 1px solid rgba(255,255,255,0.12); transition: all 0.3s;
+    }
+    .xai-bar-item:hover::before, .xai-bar-item:hover::after { border-color: rgb(var(--accent-rgb)); width: 18px; height: 18px; }
+    .xai-bar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
+    .xai-bar-icon { font-size: 0.9rem; margin-right: 0.4rem; }
+    .xai-bar-label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: #82919e; }
+    .xai-bar-pct { font-family: var(--font-mono); font-size: 1rem; color: #fff; font-weight: 700; }
+    .xai-bar-bg { width: 100%; height: 1px; background: rgba(255,255,255,0.1); position: relative; overflow: visible; margin-bottom: 0.5rem; }
+    .xai-bar-fill { height: 100%; background: rgb(var(--accent-rgb)); width: 0; transition: width 1.8s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
+    .xai-bar-fill::after {
+      content: ''; position: absolute; right: -3px; top: -3px; width: 7px; height: 7px;
+      background: #fff; border-radius: 50%; box-shadow: 0 0 8px 2px rgb(var(--accent-rgb));
+    }
+    /* Description always fully visible */
+    .xai-bar-desc {
+      font-size: 0.72rem; color: #6d7f8e; line-height: 1.6; margin-top: 0.1rem;
+    }
+    .xai-bar-item:hover .xai-bar-desc { color: #9fb0bd; }
+
+    @media (max-width: 900px) {
+      .xai-radar-wrapper { flex-direction: column; align-items: center; }
+      .xai-radar-svg-container { width: 300px; height: 300px; }
+      .xai-bars-col { grid-template-columns: 1fr; width: 100%; }
+    }
+
     @media (max-width: 992px) {
       .ai-fusion-layout {
         grid-template-columns: 1fr;
@@ -345,6 +375,18 @@
   </style>
 </head>
 <body>
+
+  <div id="cinematic-overlay">
+    <div class="cinematic-content">
+      <div class="scan-line"></div>
+      <div style="margin-bottom: 1.5rem; color: #fff; letter-spacing: 0.1em; font-size: 1rem;">ANALYZING SIGNALS...</div>
+      <div class="seq-item" id="seq-text"><span>Linguistic Depth</span> <span class="check">&#10004;</span></div>
+      <div class="seq-item" id="seq-hr"><span>Cardiac Autonomic Tone</span> <span class="check">&#10004;</span></div>
+      <div class="seq-item" id="seq-eda"><span>Sympathetic Arousal</span> <span class="check">&#10004;</span></div>
+      <div class="seq-item" id="seq-beh"><span>Behavioral Activation</span> <span class="check">&#10004;</span></div>
+      <div class="seq-final" id="seq-found">MULTIMODAL PATTERN DETECTED</div>
+    </div>
+  </div>
 
   <div class="dashboard-container" id="dashboard">
     <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2rem;">
@@ -394,124 +436,34 @@
       </div>
     </div>
 
-    <div class="section-header scroll-reveal">EXPLAINABLE AI (XAI)</div>
-    <div class="xai-section scroll-reveal">
-      <div class="xai-header">WHY DID YOU GET THIS RESULT?</div>
-      <div class="xai-grid">
-        <div class="xai-box">
-          <div class="xai-box-title">Biggest Factor</div>
-          <div class="xai-box-value" id="xai-top-factor">Analyzing...</div>
-          <div class="xai-box-desc" id="xai-top-desc">...</div>
-        </div>
-        <div class="xai-box">
-          <div class="xai-box-title">Your Body Signals</div>
-          <div class="xai-box-value" id="xai-body">Analyzing...</div>
-          <div class="xai-box-desc" id="xai-body-desc">...</div>
-        </div>
-        <div class="xai-box">
-          <div class="xai-box-title">Your Words</div>
-          <div class="xai-box-value" id="xai-text">Analyzing...</div>
-          <div class="xai-box-desc" id="xai-text-desc">...</div>
-        </div>
-      </div>
+    <div class="section-header scroll-reveal">YOUR SIGNAL STORY</div>
+    <div class="story-card scroll-reveal" id="signal-story">
+      Analyzing composite signal rationale...
     </div>
 
-    <div class="section-header scroll-reveal">HOW MOODCOMPILER READ YOUR SIGNALS</div>
-    <div class="ai-pipeline-wrapper scroll-reveal">
-      <div class="pipeline-track">
-        <div class="pipeline-progress"></div>
-        <div class="data-particle p1"></div>
-        <div class="data-particle p2"></div>
-        <div class="data-particle p3"></div>
+    <!-- EXPLAINABLE AI SECTION -->
+    <div class="section-header scroll-reveal">EXPLAINABLE AI &mdash; WHY THIS RESULT?</div>
+
+    <div class="xai-narrative scroll-reveal" id="xai-narrative">
+      Interpreting multimodal fusion decision boundaries&hellip;
+    </div>
+
+    <div class="xai-radar-wrapper scroll-reveal">
+      <!-- Radar Chart — left -->
+      <div class="xai-radar-svg-container">
+        <svg id="xai-radar-svg" viewBox="-160 -160 320 320">
+          <g id="radar-grids"></g>
+          <g id="radar-axes"></g>
+          <polygon id="radar-polygon" class="radar-polygon" points="0,0" />
+          <g id="radar-dots"></g>
+          <g id="radar-labels"></g>
+        </svg>
       </div>
 
-      <!-- Stage 01 -->
-      <div class="pipe-stage" id="stage-01">
-        <div class="stage-num-container">
-          <div class="stage-num">01</div>
-          <div class="stage-pulse"></div>
-        </div>
-        <div class="stage-card tilt-card" data-tooltip="Collects multimodal inputs including physiological measurements and text.">
-          <div class="holo-sweep"></div>
-          <div class="sc-header">
-            <div class="sc-title">RAW INPUT SIGNALS</div>
-            <div class="sc-icon"><span class="icon-pulse">&#128225;</span></div>
-          </div>
-          <div class="sc-body stage-raw">
-            <div class="raw-node">&#9829; HR</div>
-            <div class="raw-node">&#9676; RRI</div>
-            <div class="raw-node">&#8776; EDA</div>
-            <div class="raw-node">&#8901; TEMP</div>
-            <div class="raw-node">&#10022; TEXT</div>
-          </div>
-          <div class="sc-status"><span class="status-dot"></span> <span class="status-text">WAITING</span></div>
-        </div>
+      <!-- Contribution Bars — right -->
+      <div class="xai-bars-col" id="xai-bars-col">
+        <!-- Filled by JS -->
       </div>
-
-      <!-- Stage 02 -->
-      <div class="pipe-stage" id="stage-02">
-        <div class="stage-num-container">
-          <div class="stage-num">02</div>
-          <div class="stage-pulse"></div>
-        </div>
-        <div class="stage-card tilt-card" data-tooltip="Transforms raw measurements into meaningful model features.">
-          <div class="holo-sweep"></div>
-          <div class="sc-header">
-            <div class="sc-title">FEATURE ENGINEERING</div>
-            <div class="sc-icon"><span class="icon-gear">&#9881;&#65039;</span></div>
-          </div>
-          <div class="sc-body stage-features">
-            <div class="feat-flow">RAW DATA <span class="arr">&#8594;</span> PATTERNS <span class="arr">&#8594;</span> FEATURES</div>
-          </div>
-          <div class="sc-status"><span class="status-dot"></span> <span class="status-text">WAITING</span></div>
-        </div>
-      </div>
-
-      <!-- Stage 03 -->
-      <div class="pipe-stage" id="stage-03">
-        <div class="stage-num-container">
-          <div class="stage-num">03</div>
-          <div class="stage-pulse"></div>
-        </div>
-        <div class="stage-card tilt-card" data-tooltip="Combines information from different modalities before final assessment.">
-          <div class="holo-sweep"></div>
-          <div class="sc-header">
-            <div class="sc-title">LATE-FUSION INTEGRATION</div>
-            <div class="sc-icon"><span class="icon-dna">&#129516;</span></div>
-          </div>
-          <div class="sc-body stage-fusion">
-            <div class="fusion-streams">
-<div class="f-stream">TEXT &#9472;&#9488;</div>
-<div class="f-stream">HR   &#9472;&#9508;</div>
-<div class="f-stream">EDA  &#9472;&#9532;&#9472;&#8594; <span class="mini-core">FUSION CORE</span></div>
-            </div>
-          </div>
-          <div class="sc-status"><span class="status-dot"></span> <span class="status-text">WAITING</span></div>
-        </div>
-      </div>
-
-      <!-- Stage 04 -->
-      <div class="pipe-stage" id="stage-04">
-        <div class="stage-num-container">
-          <div class="stage-num">04</div>
-          <div class="stage-pulse"></div>
-        </div>
-        <div class="stage-card tilt-card" data-tooltip="Maps the integrated signal pattern to the prototype's severity scale.">
-          <div class="holo-sweep"></div>
-          <div class="sc-header">
-            <div class="sc-title">SEVERITY ASSESSMENT</div>
-            <div class="sc-icon"><span class="icon-target">&#127919;</span></div>
-          </div>
-          <div class="sc-body stage-severity">
-            <div class="sev-radar">
-               <div class="radar-ring"></div>
-               <div class="sev-result-text" id="final-sev-text">NORMAL</div>
-            </div>
-          </div>
-          <div class="sc-status"><span class="status-dot"></span> <span class="status-text">WAITING</span></div>
-        </div>
-      </div>
-
     </div>
 
     <div class="footer-disclaimer scroll-reveal">
@@ -548,19 +500,40 @@
 
     window.onload = () => {
       if(!data) {
-        document.body.innerHTML = '<div style="color:#82919e; font-family:var(--font-mono); padding:2rem; text-align:center;">[ NO DATA FOUND ]<br><br><a href="assessment.html" style="color:#64b8ad">Go to Assessment</a></div>';
+        document.getElementById('cinematic-overlay').innerHTML = '<div style="color:#82919e; font-family:var(--font-mono)">[ NO DATA FOUND ]<br><br><a href="assessment.html" style="color:#64b8ad">Go to Assessment</a></div>';
         return;
       }
-      
-      document.getElementById('dashboard').classList.add('visible');
-      
-      // Trigger cards animation
-      const cards = document.querySelectorAll('.contrib-card');
-      cards.forEach((c, i) => {
-         setTimeout(() => { c.classList.add('visible'); }, i * 150 + 200);
+
+      const seqTiming = [
+        { id: 'seq-text', time: 600 },
+        { id: 'seq-hr', time: 1200 },
+        { id: 'seq-eda', time: 1800 },
+        { id: 'seq-beh', time: 2400 },
+        { id: 'seq-found', time: 3200 }
+      ];
+
+      seqTiming.forEach(step => {
+        setTimeout(() => {
+          document.getElementById(step.id).classList.add('active');
+        }, step.time);
       });
-      setTimeout(drawLines, 500);
-      startScoreAnimation();
+
+      setTimeout(() => {
+        document.getElementById('cinematic-overlay').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('cinematic-overlay').style.display = 'none';
+          document.getElementById('dashboard').classList.add('visible');
+          
+          // Trigger cards animation
+          const cards = document.querySelectorAll('.contrib-card');
+          cards.forEach((c, i) => {
+             setTimeout(() => { c.classList.add('visible'); }, i * 150 + 500);
+          });
+          setTimeout(drawLines, 1000); // Draw SVG lines once layout is somewhat stable
+          
+          startScoreAnimation();
+        }, 800);
+      }, 4500);
     };
 
     function startScoreAnimation() {
@@ -613,7 +586,7 @@
       const cResp = contrib['Respiratory Pattern'] || 0;
       const cText = contrib['Linguistic Depth (NLP)'] || 0;
 
-      // Color mapping for hover
+      // Color mapping for hover (matches sci-fi HUD aesthetic)
       const cColors = {
         EDA: '255, 175, 100',
         HR: '255, 100, 120',
@@ -648,9 +621,8 @@
 
       function createCardHTML(sig) {
         const pct = Math.round((sig.c / (maxC || 1)) * 100);
-        const delay = (Math.random() * 3).toFixed(2);
         return `
-        <div class="contrib-card" title="${sig.desc}" data-color="${sig.col}" style="animation-delay: -${delay}s">
+        <div class="contrib-card" title="${sig.desc}" data-color="${sig.col}">
           <div class="cc-header">
             <div class="cc-icon">${sig.icon}</div>
             <div class="cc-val">${sig.val}</div>
@@ -666,28 +638,14 @@
       leftCol.innerHTML = leftSigs.map(createCardHTML).join('');
       rightCol.innerHTML = rightSigs.map(createCardHTML).join('');
 
-      let maxKey = ''; let maxVal = -1;
-      for (let key in contrib) { if (contrib[key] > maxVal) { maxVal = contrib[key]; maxKey = key; } }
-      let topFactorName = maxKey.split('(')[0].trim();
-      let topFactorDesc = "This was the strongest signal affecting your score.";
-      if (topFactorName.includes("Cardiac")) topFactorDesc = "Your heart rate patterns strongly influenced the AI.";
-      if (topFactorName.includes("Autonomic")) topFactorDesc = "Your skin sweat levels (EDA) showed significant arousal.";
-      if (topFactorName.includes("Sleep")) topFactorDesc = "Your lack of sleep was a major warning sign.";
-      if (topFactorName.includes("Sedentary")) topFactorDesc = "Your low physical activity played a big role.";
-      if (topFactorName.includes("Linguistic")) topFactorDesc = "The words you typed carried the most emotional weight.";
-      if (topFactorName.includes("Respiratory")) topFactorDesc = "Your breathing patterns were the main trigger.";
-
-      document.getElementById('xai-top-factor').innerText = topFactorName;
-      document.getElementById('xai-top-desc').innerText = topFactorDesc;
-
-      let bodyTotal = cEDA + cCardio + cSleep + cSedentary + cResp;
-      let textTotal = cText;
-
-      document.getElementById('xai-body').innerText = bodyTotal > 40 ? "Physical Stress" : "Physically Stable";
-      document.getElementById('xai-body-desc').innerText = bodyTotal > 40 ? "Your body sensors (Heart, Sweat, Sleep) show clear signs of exhaustion or stress." : "Your physical sensors are mostly in the normal, relaxed range.";
-
-      document.getElementById('xai-text').innerText = data.text && data.text.length > 5 ? (textTotal > 30 ? "Heavy Impact" : "Neutral Tone") : "No Text";
-      document.getElementById('xai-text-desc').innerText = data.text && data.text.length > 5 ? (textTotal > 30 ? "The AI detected strong feelings of sadness or stress in your writing." : "Your writing did not show severe depressive markers.") : "You didn't write anything for the AI to analyze.";
+      let story = "Your physiological signals exhibit ";
+      if(readings.eda > 5) story += "elevated autonomic activity ";
+      else story += "stable autonomic tone ";
+      if(readings.sedentary > 8) story += "combined with behavioral withdrawal patterns. ";
+      else story += "alongside healthy behavioral activation. ";
+      if(data.text && data.text.length > 10) story += "When fused with the linguistic depth extracted from your input, these multimodal signals shape the final severity boundary.";
+      else story += "These biomarkers drive the decision boundary.";
+      document.getElementById('signal-story').innerText = story;
     }
 
     // Hover Interaction: Orb reacts to Cards
@@ -728,7 +686,8 @@
         const rect = card.getBoundingClientRect();
         const isLeft = rect.left < orbRect.left;
         
-        const startX = isLeft ? rect.right - svgRect.left : rect.left - svgRect.left;
+        // Connect from the inner edge of the card (right edge for left cards, left edge for right cards)
+        const startX = isLeft ? rect.right - svgRect.left + 5 : rect.left - svgRect.left - 5;
         const startY = rect.top + rect.height/2 - svgRect.top;
         
         // Control points for bezier curve (gentle s-curve towards center)
@@ -745,81 +704,247 @@
       requestAnimationFrame(drawLines);
     });
 
-    // Scroll reveal observer
-    
-    function activatePipeline() {
-      const track = document.querySelector('.pipeline-progress');
-      const p1 = document.querySelector('.data-particle.p1');
-      const p2 = document.querySelector('.data-particle.p2');
-      const p3 = document.querySelector('.data-particle.p3');
-      
-      if (track) track.style.height = '100%';
-      if (p1) { p1.style.animation = 'dropParticle 2s linear infinite'; p1.style.animationDelay = '0s'; }
-      if (p2) { p2.style.animation = 'dropParticle 2s linear infinite'; p2.style.animationDelay = '0.6s'; }
-      if (p3) { p3.style.animation = 'dropParticle 2s linear infinite'; p3.style.animationDelay = '1.2s'; }
+    // === EXPLAINABLE AI RENDERING ===
+    function buildXAI() {
+      if(!data) return;
 
-      const stages = document.querySelectorAll('.pipe-stage');
-      const statuses = [
-        { el: stages[0], doing: 'COLLECTING', done: 'COLLECTED' },
-        { el: stages[1], doing: 'PROCESSING', done: 'PROCESSED' },
-        { el: stages[2], doing: 'FUSING', done: 'FUSED' },
-        { el: stages[3], doing: 'ASSESSING', done: 'COMPLETE' }
+      const contrib = data.contributions || {};
+      const readings = data.sensorReadings || data.sensor_readings || {};
+      const severity = (data.severity || '').toLowerCase();
+
+      // ── Helper: generate a personalized, value-driven insight per signal ──
+      function getInsight(key) {
+        const hr    = readings.hr;
+        const hrv   = readings.hrv;
+        const eda   = readings.eda;
+        const sleep = readings.sleep;
+        const sed   = readings.sedentary;
+        const resp  = readings.resp;
+        const steps = readings.steps;
+        const text  = data.text || '';
+
+        if(key === 'Linguistic Depth (NLP)') {
+          const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+          if(!text || wordCount < 3) return 'No text was provided. The model relied purely on wearable sensor signals.';
+          const neg   = /exhausted|tired|hopeless|can.t|nothing|empty|heavy|worthless|fail|lonely|numb|pointless|depressed|sad|dark|meaningless/i.test(text);
+          const anhed = /joy|like|enjoy|happy|fun|pleasure/i.test(text) && /can.t|don.t|not|no longer|lost|anymore/i.test(text);
+          if(neg && anhed)   return `Your ${wordCount}-word input contained strong negative affect AND loss-of-pleasure language — two core diagnostic signals for depression. The NLP model weighted this heavily.`;
+          if(neg)            return `Your ${wordCount}-word input includes words like "exhausted", "hopeless", or "empty" — language patterns strongly associated with depressive episodes.`;
+          if(anhed)          return `Your text suggests anhedonia — inability to enjoy things you once liked. This is a key signal the NLP model flagged.`;
+          return             `Your ${wordCount}-word input was analyzed for cognitive distortion patterns. The overall sentiment contributed to the classification.`;
+        }
+
+        if(key === 'Cardiac Stress (HR/HRV)') {
+          if(hr === undefined && hrv === undefined) return 'No heart rate data was provided.';
+          if(hr > 90 && hrv < 30) return `Your HR is ${hr} bpm (high, normal: 60–80) and HRV is ${hrv} ms (very low, healthy: >50). This combination signals your nervous system is under significant stress — a strong physiological marker for depression.`;
+          if(hr > 90)             return `Your heart rate of ${hr} bpm is above the healthy resting range (60–80 bpm). A persistently elevated HR suggests your body is stuck in a stress response, which directly impacts mood.`;
+          if(hrv !== undefined && hrv < 30) return `Your HRV of ${hrv} ms is low (healthy adults: 50–100 ms). Low HRV means your nervous system has reduced ability to recover from stress — a key biomarker for depression and burnout.`;
+          if(hrv !== undefined && hrv > 60) return `Your HRV of ${hrv} ms is healthy (50–100 ms range). Good HRV indicates strong autonomic resilience — a protective factor against mood disorders.`;
+          return `Your heart rate (${hr} bpm) and HRV (${hrv} ms) are within moderate ranges, contributing a baseline stress signal to the model.`;
+        }
+
+        if(key === 'Autonomic Arousal (EDA)') {
+          if(eda === undefined) return 'No EDA data was provided.';
+          if(eda > 10)  return `Your EDA of ${eda} µS is significantly elevated (typical rest: 2–6 µS). High skin conductance means your sympathetic nervous system is highly activated — often seen in anxiety and emotional distress.`;
+          if(eda > 6)   return `Your EDA of ${eda} µS is moderately elevated above the resting baseline (2–6 µS). This level of arousal suggests emotional stress was present during measurement.`;
+          if(eda < 1.5) return `Your EDA of ${eda} µS is very low. Extremely low arousal can reflect emotional blunting — a dissociative state sometimes seen in severe depression.`;
+          return        `Your EDA of ${eda} µS is within the normal resting range (2–6 µS), contributing a minor signal to the overall assessment.`;
+        }
+
+        if(key === 'Sleep Deprivation Risk') {
+          if(sleep === undefined) return 'No sleep data was provided.';
+          if(sleep < 4) return `Only ${sleep} hours of sleep — severe deprivation (recommended: 7–9 hrs). Chronic sleep loss directly impairs emotional regulation, raises cortisol levels, and is a strong predictor of depression.`;
+          if(sleep < 6) return `${sleep} hours of sleep is below the healthy threshold. This level of deprivation significantly affects mood, memory, and emotional resilience the next day.`;
+          if(sleep < 7) return `Your ${sleep} hours of sleep is slightly under the recommended 7–9 hours. This mild deficit can accumulate and gradually impact your emotional processing.`;
+          return        `Your sleep duration of ${sleep} hours is healthy. Good sleep is one of the strongest protective factors against mood disorders.`;
+        }
+
+        if(key === 'Sedentary Inactivity') {
+          if(sed === undefined && steps === undefined) return 'No activity data was provided.';
+          if(sed > 10 && steps < 3000) return `${sed} hours sedentary + only ${steps} steps — extreme behavioral withdrawal. This pattern of physical and social disengagement is a core behavioral marker for depression.`;
+          if(sed > 10)   return `You were sedentary for ${sed} hours (>10 hrs is high risk). Prolonged inactivity reduces dopamine production and reinforces withdrawal behaviors linked to depression.`;
+          if(steps !== undefined && steps < 3000) return `Only ${steps} steps today — well below the healthy baseline of 7,000+ steps. Low physical activity directly reduces endorphin levels and worsens mood.`;
+          if(sed !== undefined) return `You were sedentary for ${sed} hours. This is a moderate level — not a dominant factor, but considered alongside your other signals.`;
+          return 'Activity levels appear moderate — not a dominant factor in this assessment.';
+        }
+
+        if(key === 'Respiratory Pattern') {
+          if(resp === undefined) return 'No respiratory rate data was provided.';
+          if(resp > 20)  return `Your respiratory rate of ${resp} bpm is elevated (normal: 12–20 bpm). Rapid breathing is a physiological sign of anxiety and sympathetic activation, amplifying the overall stress signal.`;
+          if(resp < 10)  return `Your respiratory rate of ${resp} bpm is unusually low. This may indicate fatigue, a very calm state, or measurement noise.`;
+          return         `Your respiratory rate of ${resp} bpm is within the normal range (12–20 bpm) — contributing a baseline signal to the model.`;
+        }
+
+        return 'Signal contributed to the multimodal fusion assessment.';
+      }
+
+      // ── Signal config — desc is now dynamically generated per user ──
+      const xaiConfig = [
+        { key: 'Linguistic Depth (NLP)',  label: 'Linguistic Depth',  icon: '\uD83D\uDCAC', col: '200,140,255' },
+        { key: 'Cardiac Stress (HR/HRV)', label: 'Cardiac Stress',    icon: '\uD83E\uDEC0', col: '255,100,120' },
+        { key: 'Autonomic Arousal (EDA)', label: 'Autonomic Arousal', icon: '\u26A1',        col: '255,175,100' },
+        { key: 'Sleep Deprivation Risk',  label: 'Sleep Quality',     icon: '\uD83C\uDF19',  col: '120,150,255' },
+        { key: 'Sedentary Inactivity',    label: 'Sedentary Pattern', icon: '\uD83E\uDE91',  col: '160,130,120' },
+        { key: 'Respiratory Pattern',     label: 'Respiratory Rate',  icon: '\uD83E\uDEC1',  col: '100,220,200' }
       ];
+      xaiConfig.forEach(item => { item.desc = getInsight(item.key); });
 
-      stages.forEach((s, idx) => {
-        setTimeout(() => {
-          s.classList.add('active');
-          const stText = s.querySelector('.status-text');
-          if(stText) stText.innerText = statuses[idx].doing;
-          
-          if (idx > 0) {
-            stages[idx-1].classList.add('completed');
-            const prevText = stages[idx-1].querySelector('.status-text');
-            if(prevText) prevText.innerText = statuses[idx-1].done;
-          }
-          
-          if (idx === 3) {
-            setTimeout(() => {
-               s.classList.add('completed');
-               if(stText) stText.innerText = statuses[3].done;
-               const sevText = document.getElementById('final-sev-text');
-               if(sevText && data) sevText.innerText = data.severity.toUpperCase();
-            }, 1000);
-          }
-        }, idx * 800);
+      const maxC = Object.keys(contrib).length > 0 ? Math.max(...Object.values(contrib), 1) : 1;
+      const validItems = xaiConfig.filter(item => contrib[item.key] !== undefined);
+
+      // ── Personalized top-level narrative ──
+      const narrativeEl = document.getElementById('xai-narrative');
+      if(narrativeEl) {
+        const sorted = validItems.slice().sort((a,b) => (contrib[b.key]||0) - (contrib[a.key]||0));
+        const top = sorted[0], second = sorted[1];
+        if(top) {
+          const sevLabel = { normal: 'low risk', mild: 'mild risk', moderate: 'moderate risk', severe: 'high risk' }[severity] || severity;
+          let html = `The model assessed <strong>${sevLabel}</strong>. `;
+          html += `The biggest contributor was <strong style="color:rgb(${top.col})">${top.label} at ${contrib[top.key]}%</strong> — ${top.desc}`;
+          if(second) html += ` <strong style="color:rgb(${second.col})">${second.label} (${contrib[second.key]}%)</strong> was the next key factor.`;
+          narrativeEl.innerHTML = html;
+        }
+      }
+
+      // ── Render HUD Bars ──
+      const barsCol = document.getElementById('xai-bars-col');
+      if(barsCol) {
+        let barsHTML = '';
+        const sorted = validItems.slice().sort((a,b) => (contrib[b.key]||0) - (contrib[a.key]||0));
+        sorted.forEach((item, idx) => {
+          const pct  = contrib[item.key] || 0;
+          const barW = Math.round((pct / maxC) * 100);
+          const tag  = idx === 0 ? `<span style="font-family:var(--font-mono);font-size:0.6rem;color:rgb(${item.col});letter-spacing:0.08em;margin-left:0.5rem;opacity:0.9;">PRIMARY</span>` : '';
+          barsHTML += `
+          <div class="xai-bar-item" data-color="${item.col}">
+            <div class="xai-bar-header">
+              <span><span class="xai-bar-icon">${item.icon}</span><span class="xai-bar-label">${item.label}</span>${tag}</span>
+              <span class="xai-bar-pct">${pct}%</span>
+            </div>
+            <div class="xai-bar-bg">
+              <div class="xai-bar-fill" data-w="${barW}" style="background:rgb(${item.col});"></div>
+            </div>
+            <div class="xai-bar-desc">${item.desc}</div>
+          </div>`;
+        });
+        barsCol.innerHTML = barsHTML;
+        barsCol.querySelectorAll('.xai-bar-item').forEach(el => {
+          el.addEventListener('mouseenter', () => document.documentElement.style.setProperty('--accent-rgb', el.dataset.color));
+          el.addEventListener('mouseleave', () => document.documentElement.style.setProperty('--accent-rgb', baseColorRgb));
+        });
+      }
+
+      // --- Render Radar Chart ---
+      const radarKeys = validItems.slice(0, 6);
+      if(radarKeys.length < 2) return;
+
+      const cx = 0, cy = 0, maxR = 130;
+      const levels = 4;
+      const total = radarKeys.length;
+      const angleStep = (2 * Math.PI) / total;
+
+      // Grid rings
+      const gridsG = document.getElementById('radar-grids');
+      let gridsHTML = '';
+      for(let i = 1; i <= levels; i++) {
+        const r = (maxR / levels) * i;
+        // Draw polygon rings for clean hexagonal look
+        let pts = '';
+        for(let j = 0; j < total; j++) {
+          const angle = angleStep * j - Math.PI/2;
+          pts += `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)} `;
+        }
+        gridsHTML += `<polygon class="radar-grid" points="${pts.trim()}" />`;
+      }
+      gridsG.innerHTML = gridsHTML;
+
+      // Axis lines
+      const axesG = document.getElementById('radar-axes');
+      let axesHTML = '';
+      for(let j = 0; j < total; j++) {
+        const angle = angleStep * j - Math.PI/2;
+        const x = cx + maxR * Math.cos(angle);
+        const y = cy + maxR * Math.sin(angle);
+        axesHTML += `<line class="radar-axis" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" />`;
+      }
+      axesG.innerHTML = axesHTML;
+
+      // Data polygon
+      let dataPoints = '';
+      const dotPoints = [];
+      radarKeys.forEach((item, j) => {
+        const val = (contrib[item.key] || 0) / maxC;
+        const angle = angleStep * j - Math.PI/2;
+        const r = val * maxR;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        dataPoints += `${x},${y} `;
+        dotPoints.push({x, y, item});
       });
+      const polygon = document.getElementById('radar-polygon');
+      polygon.setAttribute('points', dataPoints.trim());
+
+      // Dots
+      const dotsG = document.getElementById('radar-dots');
+      let dotsHTML = '';
+      dotPoints.forEach(({x, y}) => {
+        dotsHTML += `<circle class="radar-dot" cx="${x}" cy="${y}" r="4" />`;
+      });
+      dotsG.innerHTML = dotsHTML;
+
+      // Labels
+      const labelsG = document.getElementById('radar-labels');
+      let labelsHTML = '';
+      radarKeys.forEach((item, j) => {
+        const angle = angleStep * j - Math.PI/2;
+        const labelR = maxR + 24;
+        const lx = cx + labelR * Math.cos(angle);
+        const ly = cy + labelR * Math.sin(angle);
+        const pct = contrib[item.key] || 0;
+        labelsHTML += `<text class="radar-label" x="${lx}" y="${ly - 5}">${item.icon} ${item.label.split(' ')[0].toUpperCase()}</text>`;
+        labelsHTML += `<text class="radar-label-val" x="${lx}" y="${ly + 7}">${pct}%</text>`;
+      });
+      labelsG.innerHTML = labelsHTML;
     }
 
-    document.querySelectorAll('.tilt-card').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        const rotateX = ((y - centerY) / centerY) * -4;
-        const rotateY = ((x - centerX) / centerX) * 4;
-        card.style.transform = perspective(1000px) rotateX(deg) rotateY(deg) translateZ(10px);
-      });
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateZ(0)';
-      });
-    });
-
-    const observer = new IntersectionObserver((entries) => {
+    // Animate XAI on scroll reveal — triggered once XAI section enters view
+    const xaiObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          if (entry.target.classList.contains('ai-pipeline-wrapper') && !entry.target.dataset.activated) {
-            entry.target.dataset.activated = 'true';
-            activatePipeline();
-          }
+        if(entry.isIntersecting && entry.target.id === 'xai-bars-col') {
+          // Animate bars
+          entry.target.querySelectorAll('.xai-bar-item').forEach((el, i) => {
+            setTimeout(() => {
+              el.classList.add('visible');
+              const fill = el.querySelector('.xai-bar-fill');
+              if(fill) fill.style.width = fill.dataset.w + '%';
+            }, i * 180);
+          });
+          // Animate radar
+          setTimeout(() => {
+            document.getElementById('radar-polygon').classList.add('visible');
+            document.querySelectorAll('.radar-dot').forEach((d, i) => {
+              setTimeout(() => d.classList.add('visible'), i * 100);
+            });
+          }, 400);
+          xaiObserver.disconnect();
         }
       });
-    }, { threshold: 0.15 });
+    }, { threshold: 0.2 });
 
+    // Build XAI immediately (data parsing runs synchronously)
+    buildXAI();
+    const xaiBarsEl = document.getElementById('xai-bars-col');
+    if(xaiBarsEl) xaiObserver.observe(xaiBarsEl);
+
+    // Scroll reveal observer (restores section headers + pipeline steps animation)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.12 });
     document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
 
   </script>
+
 </body>
 </html>

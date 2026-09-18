@@ -36,5 +36,13 @@ env/
 .DS_Store
 Thumbs.db
 
-# Large raw datasets (can be linked in README if needed)
-# backend/data/wearable/
+# Large Model Weights (>100MB exceeds GitHub limits)
+*.safetensors
+*.bin
+*.pt
+backend/models/mentalbert_depression/model.safetensors
+
+# Temporary & backup files
+*_backup.html
+*.log  
+ 
