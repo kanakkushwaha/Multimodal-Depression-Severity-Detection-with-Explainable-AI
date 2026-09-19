@@ -292,8 +292,11 @@
     }
     .xai-radar-svg-container {
       position: relative;
-      width: 380px; height: 380px;
+      width: 430px; height: 370px;
+      max-width: 100%;
       flex-shrink: 0;
+      overflow: visible;
+      padding: 0 10px;
     }
     #xai-radar-svg { width: 100%; height: 100%; overflow: visible; }
     .radar-grid { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 1; }
@@ -372,9 +375,284 @@
       .ai-orb-center { order: -1; }
       .ai-fusion-svg { display: none; } /* Hide lines on mobile stacked view */
     }
+  
+    /* ==========================================================================
+       RESULTS TOP AREA ENHANCEMENT (HEADER & TELEMETRY RIBBON)
+       ========================================================================== */
+    .res-top-navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      margin-bottom: 1.2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .res-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+    .res-brand-logo {
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(var(--accent-rgb), 0.6);
+      border-radius: 50%;
+      background: #101a23;
+      padding: 4px;
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.25);
+      transition: border-color 0.4s, box-shadow 0.4s;
+    }
+    .res-brand-text {
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+    .res-subtag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: rgb(var(--accent-rgb));
+      background: rgba(var(--accent-rgb), 0.1);
+      border: 1px solid rgba(var(--accent-rgb), 0.3);
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.4s, border-color 0.4s, background 0.4s;
+    }
+
+    /* Central Telemetry HUD Badge */
+    .res-nav-telemetry-hud {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: rgba(12, 20, 32, 0.75);
+      border: 1px solid rgba(var(--accent-rgb), 0.25);
+      padding: 6px 14px;
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(var(--accent-rgb), 0.05);
+      transition: border-color 0.4s, box-shadow 0.4s;
+    }
+    .res-pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgb(var(--accent-rgb));
+      box-shadow: 0 0 8px rgb(var(--accent-rgb));
+      animation: pulse-glow 2s infinite ease-in-out;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    .res-sep {
+      opacity: 0.35;
+      font-size: 0.6rem;
+    }
+
+    /* Top Action Buttons */
+    .res-actions-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .res-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .res-nav-btn:hover {
+      background: rgba(var(--accent-rgb), 0.12);
+      border-color: rgb(var(--accent-rgb));
+      color: rgb(var(--accent-rgb));
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.25);
+    }
+    .res-print-btn {
+      color: rgb(var(--accent-rgb));
+      border-color: rgba(var(--accent-rgb), 0.35);
+    }
+
+    /* Telemetry Stream Ribbon (Fills the empty space above hero circle) */
+    .results-stream-ribbon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 0 auto 1.4rem;
+      max-width: 950px;
+    }
+    .stream-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(12, 20, 32, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 16px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+      flex: 1;
+    }
+    .stream-chip:hover {
+      border-color: rgba(var(--accent-rgb), 0.35);
+      background: rgba(16, 26, 42, 0.85);
+    }
+    .stream-icon {
+      font-size: 1.15rem;
+    }
+    .stream-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .stream-title {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: rgb(var(--accent-rgb));
+      letter-spacing: 0.06em;
+      transition: color 0.4s;
+    }
+    .stream-desc {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .stream-fusion-connector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .connector-line {
+      width: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.6), transparent);
+    }
+    .connector-badge {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: rgb(var(--accent-rgb));
+      background: rgba(var(--accent-rgb), 0.08);
+      border: 1px solid rgba(var(--accent-rgb), 0.25);
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+      transition: all 0.4s;
+    }
+
+    /* Tighten ai-fusion-layout top margin so it flows naturally */
+    .ai-fusion-layout {
+      margin: 1.8rem auto 4rem !important;
+    }
+
+    @media (max-width: 860px) {
+      .results-stream-ribbon {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .stream-fusion-connector {
+        transform: rotate(90deg);
+        margin: 4px 0;
+      }
+      .res-top-navbar {
+        justify-content: center;
+      }
+      .res-nav-telemetry-hud {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+  
+    /* 3D WebGL Background Canvas */
+    #webgl-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+        .viewport-overlay::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 220px;
+      height: 100%;
+      background: radial-gradient(ellipse at 0% 45%, rgba(0, 240, 255, 0.14) 0%, transparent 75%);
+      pointer-events: none;
+    }
+    .viewport-overlay::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 220px;
+      height: 100%;
+      background: radial-gradient(ellipse at 100% 55%, rgba(168, 85, 247, 0.14) 0%, transparent 75%);
+      pointer-events: none;
+    }
+    .viewport-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, rgba(2,4,10,0.25) 20%, rgba(2, 4, 10, 0.88) 90%),
+                  linear-gradient(to bottom, rgba(2,4,10,0.4) 0%, transparent 20%, transparent 80%, rgba(2,4,10,0.95) 100%);
+    }
+    .scanline-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.04) 0px,
+        rgba(0, 0, 0, 0.04) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      opacity: 0.35;
+    }
+    .dashboard-container {
+      position: relative;
+      z-index: 10;
+    }
+
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+
+  <!-- 3D WebGL Particle Universe Canvas & Atmosphere -->
+  <canvas id="webgl-canvas"></canvas>
+  <div class="viewport-overlay"></div>
+  <div class="scanline-layer"></div>
+
 
   <div id="cinematic-overlay">
     <div class="cinematic-content">
@@ -389,13 +667,50 @@
   </div>
 
   <div class="dashboard-container" id="dashboard">
-    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2rem;">
-      <div style="display:flex; align-items:center; gap:0.5rem;">
-        <img src="assets/logo/logo.png" alt="logo" style="width:24px; border:1px solid rgba(var(--accent-rgb),0.5); border-radius:50%; background:#101a23; padding:4px;" />
-        <span style="font-weight:700; font-size:1.1rem; color:#fff;">moodcompiler</span>
+    <!-- ENHANCED TOP NAVIGATION BAR -->
+    <div class="res-top-navbar">
+      <a href="index.html" class="res-brand-wrap">
+        <img src="assets/logo/logo.png" alt="logo" class="res-brand-logo" />
+        <span class="res-brand-text">moodcompiler</span>
+        <span class="res-subtag">NEURAL SYNTHESIS</span>
+      </a>
+
+      <div class="res-nav-telemetry-hud">
+        <span class="res-pulse-dot"></span>
+        <span>DECISION ENGINE: <b>CROSS-ATTENTION FUSION</b></span>
+        <span class="res-sep">•</span>
+        <span>CALIBRATION: <b>4-TIER CLINICAL SPECTRUM</b></span>
       </div>
-      <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.1em;">
-        YOUR MOODCOMPILER ANALYSIS
+
+      <div class="res-actions-cluster">
+        <a href="assessment.html" class="res-nav-btn">↺ New Assessment</a>
+        <a href="index.html" class="res-nav-btn">← Home</a>
+        <button onclick="window.print()" class="res-nav-btn res-print-btn">🖨️ Save</button>
+      </div>
+    </div>
+
+    <!-- TELEMETRY STREAM RIBBON (FILLS EMPTY VOID ABOVE FUSION CIRCLE) -->
+    <div class="results-stream-ribbon">
+      <div class="stream-chip">
+        <span class="stream-icon">💬</span>
+        <div class="stream-info">
+          <span class="stream-title">MODALITY 01 // LINGUISTIC NLP</span>
+          <span class="stream-desc">Affective Valence &amp; Discourse Dynamics</span>
+        </div>
+      </div>
+      
+      <div class="stream-fusion-connector">
+        <span class="connector-line"></span>
+        <span class="connector-badge">CROSS-MODAL FUSION</span>
+        <span class="connector-line"></span>
+      </div>
+
+      <div class="stream-chip">
+        <span class="stream-icon">⌚</span>
+        <div class="stream-info">
+          <span class="stream-title">MODALITY 02 // 8 WEARABLE BIOSIGNALS</span>
+          <span class="stream-desc">Autonomic Load &amp; Circadian Vitals</span>
+        </div>
       </div>
     </div>
 
@@ -427,7 +742,7 @@
         <div class="hero-result-text" id="hero-result-text">
           <div class="status-complete"><span style="margin-right:0.5rem">&#10004;</span> FUSION COMPLETE</div>
           <div class="severity-title" id="sev-main">EVALUATING</div>
-          <div class="severity-level" id="sev-level">Level - / 5</div>
+          <div class="severity-level" id="sev-level">Level - / 4</div>
         </div>
       </div>
 
@@ -451,7 +766,7 @@
     <div class="xai-radar-wrapper scroll-reveal">
       <!-- Radar Chart — left -->
       <div class="xai-radar-svg-container">
-        <svg id="xai-radar-svg" viewBox="-160 -160 320 320">
+        <svg id="xai-radar-svg" viewBox="-210 -170 420 340">
           <g id="radar-grids"></g>
           <g id="radar-axes"></g>
           <polygon id="radar-polygon" class="radar-polygon" points="0,0" />
@@ -555,18 +870,12 @@
       }, stepTime);
     }
 
-    function mapToSpectrum(level, compScore) {
-      if(level === 1) return 1;
-      if(level === 2) return compScore > 0.4 ? 3 : 2;
-      if(level === 3) return 4;
-      if(level === 4) return 5;
-      return 3;
-    }
-
     function revealFinalResult() {
       const compScore = data.composite !== undefined ? data.composite : (data.composite_score !== undefined ? data.composite_score : 0.5);
       document.getElementById('sev-main').innerText = data.severity.toUpperCase();
-      document.getElementById('sev-level').innerText = 'Level ' + mapToSpectrum(data.level, compScore) + ' / 5';
+      // True 4-tier calibrated clinical classification (Normal=1, Mild=2, Moderate=3, Severe=4)
+      const displayLevel = (data.level && data.level >= 1 && data.level <= 4) ? data.level : 3;
+      document.getElementById('sev-level').innerText = 'Level ' + displayLevel + ' / 4';
       document.getElementById('hero-result-text').classList.add('revealed');
       
       // Animate progress bars in cards
@@ -838,7 +1147,7 @@
       const radarKeys = validItems.slice(0, 6);
       if(radarKeys.length < 2) return;
 
-      const cx = 0, cy = 0, maxR = 130;
+      const cx = 0, cy = 0, maxR = 112; // Adjusted to prevent label clipping on edges
       const levels = 4;
       const total = radarKeys.length;
       const angleStep = (2 * Math.PI) / total;
@@ -897,7 +1206,7 @@
       let labelsHTML = '';
       radarKeys.forEach((item, j) => {
         const angle = angleStep * j - Math.PI/2;
-        const labelR = maxR + 24;
+        const labelR = maxR + 20;
         const lx = cx + labelR * Math.cos(angle);
         const ly = cy + labelR * Math.sin(angle);
         const pct = contrib[item.key] || 0;
@@ -944,6 +1253,279 @@
     }, { threshold: 0.12 });
     document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
 
+  </script>
+
+
+  <!-- 3D Three.js WebGL Universe Animation Script (Enriched Flanks) -->
+  <script>
+    (function () {
+      const canvas = document.getElementById('webgl-canvas');
+      if (!canvas || !window.THREE) return;
+
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x02040a, 0.0015);
+
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+      camera.position.set(0, 0, 100);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      function createPointTexture() {
+        const c = document.createElement('canvas');
+        c.width = 64; c.height = 64;
+        const cctx = c.getContext('2d');
+        const grad = cctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        grad.addColorStop(0, 'rgba(255,255,255,0.95)');
+        grad.addColorStop(0.35, 'rgba(0,240,255,0.6)');
+        grad.addColorStop(0.8, 'rgba(168,85,247,0.15)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        cctx.fillStyle = grad;
+        cctx.fillRect(0, 0, 64, 64);
+        const texture = new THREE.Texture(c);
+        texture.needsUpdate = true;
+        return texture;
+      }
+      const pointTexture = createPointTexture();
+
+      // ==========================================
+      // 1. GLOBAL DEEP STARFIELD (2500 PARTICLES)
+      // ==========================================
+      const particleCount = 2500;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+      const colors = new Float32Array(particleCount * 3);
+
+      const cyanColor = new THREE.Color(0x00f0ff);
+      const violetColor = new THREE.Color(0xa855f7);
+      const goldColor = new THREE.Color(0xe5bd73);
+
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 850;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 850;
+        positions[i * 3 + 2] = -60 - Math.random() * 650;
+
+        const mix = Math.random();
+        const col = mix < 0.45 ? cyanColor : (mix < 0.8 ? violetColor : goldColor);
+        colors[i * 3] = col.r;
+        colors[i * 3 + 1] = col.g;
+        colors[i * 3 + 2] = col.b;
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const pointMaterial = new THREE.PointsMaterial({
+        size: 3.2,
+        vertexColors: true,
+        map: pointTexture,
+        transparent: true,
+        opacity: 0.65,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      const particleSystem = new THREE.Points(geometry, pointMaterial);
+      scene.add(particleSystem);
+
+      // ==========================================
+      // 2. LEFT FLANK 3D CYBERNETIC STRUCTURE
+      // ==========================================
+      const leftGroup = new THREE.Group();
+      scene.add(leftGroup);
+      leftGroup.position.set(-95, 10, -45);
+
+      // Left Wireframe Octahedron
+      const leftOctaGeom = new THREE.OctahedronGeometry(14, 0);
+      const leftOctaMat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.35
+      });
+      const leftOcta = new THREE.Mesh(leftOctaGeom, leftOctaMat);
+      leftGroup.add(leftOcta);
+
+      // Left Inner Sphere
+      const leftInnerGeom = new THREE.SphereGeometry(7, 16, 16);
+      const leftInnerMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.25
+      });
+      const leftInner = new THREE.Mesh(leftInnerGeom, leftInnerMat);
+      leftGroup.add(leftInner);
+
+      // Left Dual Gyroscope Rings
+      const leftRingGeom1 = new THREE.TorusGeometry(22, 0.35, 16, 64);
+      const leftRingGeom2 = new THREE.TorusGeometry(28, 0.25, 16, 64);
+      const leftRingMat1 = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.45 });
+      const leftRingMat2 = new THREE.MeshBasicMaterial({ color: 0x5ef2d6, transparent: true, opacity: 0.35 });
+      const leftRing1 = new THREE.Mesh(leftRingGeom1, leftRingMat1);
+      const leftRing2 = new THREE.Mesh(leftRingGeom2, leftRingMat2);
+      leftRing1.rotation.x = Math.PI / 4;
+      leftRing2.rotation.y = Math.PI / 3;
+      leftGroup.add(leftRing1);
+      leftGroup.add(leftRing2);
+
+      // Left Cyan Point Light
+      const leftLight = new THREE.PointLight(0x00f0ff, 1.8, 180);
+      leftGroup.add(leftLight);
+
+      // Left Cascading Biometric Stream (450 particles)
+      const streamCount = 450;
+      const leftStreamGeom = new THREE.BufferGeometry();
+      const leftStreamPos = new Float32Array(streamCount * 3);
+      for (let i = 0; i < streamCount; i++) {
+        leftStreamPos[i * 3] = -75 - Math.random() * 85;
+        leftStreamPos[i * 3 + 1] = (Math.random() - 0.5) * 160;
+        leftStreamPos[i * 3 + 2] = -35 + (Math.random() - 0.5) * 50;
+      }
+      leftStreamGeom.setAttribute('position', new THREE.BufferAttribute(leftStreamPos, 3));
+      const leftStreamMat = new THREE.PointsMaterial({
+        size: 4.5,
+        color: 0x00f0ff,
+        map: pointTexture,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending
+      });
+      const leftStream = new THREE.Points(leftStreamGeom, leftStreamMat);
+      scene.add(leftStream);
+
+      // ==========================================
+      // 3. RIGHT FLANK 3D NEURAL STRUCTURE
+      // ==========================================
+      const rightGroup = new THREE.Group();
+      scene.add(rightGroup);
+      rightGroup.position.set(95, -10, -45);
+
+      // Right Wireframe Icosahedron
+      const rightIcoGeom = new THREE.IcosahedronGeometry(15, 0);
+      const rightIcoMat = new THREE.MeshBasicMaterial({
+        color: 0xa855f7,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.35
+      });
+      const rightIco = new THREE.Mesh(rightIcoGeom, rightIcoMat);
+      rightGroup.add(rightIco);
+
+      // Right Inner Dodecahedron
+      const rightInnerGeom = new THREE.DodecahedronGeometry(8, 0);
+      const rightInnerMat = new THREE.MeshBasicMaterial({
+        color: 0xec4899,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.25
+      });
+      const rightInner = new THREE.Mesh(rightInnerGeom, rightInnerMat);
+      rightGroup.add(rightInner);
+
+      // Right Dual Gyroscope Rings
+      const rightRingGeom1 = new THREE.TorusGeometry(23, 0.35, 16, 64);
+      const rightRingGeom2 = new THREE.TorusGeometry(30, 0.25, 16, 64);
+      const rightRingMat1 = new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.45 });
+      const rightRingMat2 = new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.30 });
+      const rightRing1 = new THREE.Mesh(rightRingGeom1, rightRingMat1);
+      const rightRing2 = new THREE.Mesh(rightRingGeom2, rightRingMat2);
+      rightRing1.rotation.y = Math.PI / 4;
+      rightRing2.rotation.x = Math.PI / 3;
+      rightGroup.add(rightRing1);
+      rightGroup.add(rightRing2);
+
+      // Right Violet Point Light
+      const rightLight = new THREE.PointLight(0xa855f7, 1.8, 180);
+      rightGroup.add(rightLight);
+
+      // Right Cascading Biometric Stream (450 particles)
+      const rightStreamGeom = new THREE.BufferGeometry();
+      const rightStreamPos = new Float32Array(streamCount * 3);
+      for (let i = 0; i < streamCount; i++) {
+        rightStreamPos[i * 3] = 75 + Math.random() * 85;
+        rightStreamPos[i * 3 + 1] = (Math.random() - 0.5) * 160;
+        rightStreamPos[i * 3 + 2] = -35 + (Math.random() - 0.5) * 50;
+      }
+      rightStreamGeom.setAttribute('position', new THREE.BufferAttribute(rightStreamPos, 3));
+      const rightStreamMat = new THREE.PointsMaterial({
+        size: 4.5,
+        color: 0xa855f7,
+        map: pointTexture,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending
+      });
+      const rightStream = new THREE.Points(rightStreamGeom, rightStreamMat);
+      scene.add(rightStream);
+
+      // ==========================================
+      // 4. MOUSE PARALLAX & ANIMATION LOOP
+      // ==========================================
+      let targetRotX = 0, targetRotY = 0;
+      window.addEventListener('mousemove', (e) => {
+        const normX = (e.clientX / window.innerWidth) - 0.5;
+        const normY = (e.clientY / window.innerHeight) - 0.5;
+        targetRotX = normY * 0.35;
+        targetRotY = normX * 0.45;
+      }, { passive: true });
+
+      // Scroll Parallax: gently shifts left and right structures as user scrolls
+      let scrollY = 0;
+      window.addEventListener('scroll', () => {
+        scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      }, { passive: true });
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      let clock = new THREE.Clock();
+      function animateWebGL() {
+        requestAnimationFrame(animateWebGL);
+        const elapsed = clock.getElapsedTime();
+
+        // Background Starfield rotation
+        particleSystem.rotation.y = elapsed * 0.012;
+        particleSystem.rotation.x = elapsed * 0.006;
+
+        // Left 3D Structure animation
+        leftOcta.rotation.x = elapsed * 0.25;
+        leftOcta.rotation.y = elapsed * 0.30;
+        leftInner.rotation.y = -elapsed * 0.35;
+        leftRing1.rotation.z = elapsed * 0.28;
+        leftRing2.rotation.x = -elapsed * 0.20;
+
+        // Right 3D Structure animation
+        rightIco.rotation.x = -elapsed * 0.22;
+        rightIco.rotation.y = elapsed * 0.28;
+        rightInner.rotation.y = elapsed * 0.35;
+        rightRing1.rotation.z = -elapsed * 0.25;
+        rightRing2.rotation.y = elapsed * 0.20;
+
+        // Animate Left & Right particle streams (undulating sine waves)
+        const lPos = leftStream.geometry.attributes.position.array;
+        const rPos = rightStream.geometry.attributes.position.array;
+        for (let i = 0; i < streamCount; i++) {
+          lPos[i * 3 + 1] += Math.sin(elapsed * 2.2 + lPos[i * 3] * 0.05) * 0.08;
+          rPos[i * 3 + 1] += Math.cos(elapsed * 2.2 + rPos[i * 3] * 0.05) * 0.08;
+        }
+        leftStream.geometry.attributes.position.needsUpdate = true;
+        rightStream.geometry.attributes.position.needsUpdate = true;
+
+        // Camera Parallax
+        const scrollOffset = (scrollY * 0.04);
+        camera.position.x += (targetRotY * 22 - camera.position.x) * 0.05;
+        camera.position.y += (-targetRotX * 22 - (scrollOffset % 40) - camera.position.y) * 0.05;
+        camera.lookAt(0, 0, 0);
+
+        renderer.render(scene, camera);
+      }
+      animateWebGL();
+    })();
   </script>
 
 </body>

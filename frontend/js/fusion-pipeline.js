@@ -16,12 +16,12 @@
        CONFIG
     ------------------------------------------------------------------ */
     const CFG = {
-        TEAL:       '#64b8ad',
-        GOLD:       '#e5bd73',
-        CREAM:      '#f8f4eb',
-        MUTED:      '#82919e',
-        VIOLET:     '#8b7eb8',
-        PINK:       '#c488a0',
+        TEAL:       '#00f0ff',
+        GOLD:       '#a855f7',
+        CREAM:      '#f8fafc',
+        MUTED:      '#94a3b8',
+        VIOLET:     '#a855f7',
+        PINK:       '#38bdf8',
 
         PARTICLE_SPEED_IDLE: 0.4,
         PARTICLE_SPEED_PROC: 1.6,

@@ -36,7 +36,7 @@
       vx: (Math.random() - 0.5) * 0.35,
       vy: (Math.random() - 0.5) * 0.35,
       radius: Math.random() * 2 + 1,
-      color: Math.random() > 0.4 ? 'rgba(100, 184, 173, ' : 'rgba(229, 189, 115, ',
+      color: Math.random() > 0.4 ? 'rgba(0, 240, 255, ' : 'rgba(168, 85, 247, ',
       alpha: Math.random() * 0.5 + 0.2
     });
   }
@@ -45,10 +45,10 @@
   function drawEtherealWaves() {
     const waveCount = 4;
     const waveColors = [
-      { stroke: 'rgba(100, 184, 173, 0.35)', fill: 'rgba(100, 184, 173, 0.04)', speed: 0.008, amp: 55, freq: 0.0025, y: height * 0.42 },
-      { stroke: 'rgba(205, 151, 179, 0.3)', fill: 'rgba(205, 151, 179, 0.03)', speed: 0.006, amp: 70, freq: 0.002, y: height * 0.50 },
-      { stroke: 'rgba(229, 189, 115, 0.35)', fill: 'rgba(229, 189, 115, 0.035)', speed: 0.01, amp: 45, freq: 0.003, y: height * 0.58 },
-      { stroke: 'rgba(80, 177, 193, 0.25)', fill: 'rgba(80, 177, 193, 0.025)', speed: 0.007, amp: 60, freq: 0.0018, y: height * 0.65 }
+      { stroke: 'rgba(0, 240, 255, 0.35)', fill: 'rgba(0, 240, 255, 0.03)', speed: 0.008, amp: 55, freq: 0.0025, y: height * 0.42 },
+      { stroke: 'rgba(168, 85, 247, 0.3)', fill: 'rgba(168, 85, 247, 0.025)', speed: 0.006, amp: 70, freq: 0.002, y: height * 0.50 },
+      { stroke: 'rgba(56, 189, 248, 0.35)', fill: 'rgba(56, 189, 248, 0.03)', speed: 0.01, amp: 45, freq: 0.003, y: height * 0.58 },
+      { stroke: 'rgba(0, 240, 255, 0.25)', fill: 'rgba(0, 240, 255, 0.02)', speed: 0.007, amp: 60, freq: 0.0018, y: height * 0.65 }
     ];
 
     waveColors.forEach((wave, idx) => {
@@ -114,7 +114,7 @@
           ctx.beginPath();
           ctx.moveTo(p.x + mouse.x * 0.2, p.y + mouse.y * 0.2);
           ctx.lineTo(p2.x + mouse.x * 0.2, p2.y + mouse.y * 0.2);
-          ctx.strokeStyle = `rgba(124, 203, 208, ${alpha})`;
+          ctx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
           ctx.lineWidth = 0.7;
           ctx.stroke();
         }
@@ -131,13 +131,13 @@
 
     // Deep space radial glows (Atmosphere)
     const glow1 = ctx.createRadialGradient(width * 0.2 + mouse.x, height * 0.3 + mouse.y, 10, width * 0.2, height * 0.3, width * 0.5);
-    glow1.addColorStop(0, 'rgba(100, 184, 173, 0.14)');
+    glow1.addColorStop(0, 'rgba(0, 240, 255, 0.10)');
     glow1.addColorStop(1, 'transparent');
     ctx.fillStyle = glow1;
     ctx.fillRect(0, 0, width, height);
 
     const glow2 = ctx.createRadialGradient(width * 0.8 - mouse.x, height * 0.6 - mouse.y, 10, width * 0.8, height * 0.6, width * 0.55);
-    glow2.addColorStop(0, 'rgba(205, 151, 179, 0.12)');
+    glow2.addColorStop(0, 'rgba(168, 85, 247, 0.10)');
     glow2.addColorStop(1, 'transparent');
     ctx.fillStyle = glow2;
     ctx.fillRect(0, 0, width, height);

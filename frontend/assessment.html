@@ -3,16 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Assessment — moodcompiler</title>
+  <title>Neural Multimodal Assessment — moodcompiler</title>
   <link rel="icon" type="image/png" href="assets/logo/logo.png" />
-  <!-- Premium Google Fonts -->
+
+  <!-- Premium Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- External Visual Engines (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
   <style>
-    /* 1. Canvas at z-index: 0 (Above body color, right behind UI) */
+    /* ==========================================================================
+       1. CORE DESIGN SYSTEM & VARIABLES
+       ========================================================================== */
+    :root {
+      --bg-dark: #02040a;
+      --bg-surface: #060b17;
+      --bg-card: rgba(6, 13, 27, 0.82);
+      --bg-card-hover: rgba(10, 22, 45, 0.94);
+
+      --electric-cyan: #00f0ff;
+      --deep-cyan: #0ea5e9;
+      --icy-teal: #5ef2d6;
+      --bio-teal: #38bdf8;
+      --neural-violet: #a855f7;
+      --deep-indigo: #6366f1;
+      --gold-accent: #e5bd73;
+      --crimson-accent: #f43f5e;
+      --emerald-accent: #10b981;
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-cyan: rgba(0, 240, 255, 0.32);
+      --border-glow: rgba(0, 240, 255, 0.6);
+
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --teal: #00f0ff;
+      --gold: #a855f7;
+      --text-soft: #94a3b8;
+      --trans-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      --trans-fast: all 0.2s ease;
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    body {
+      position: relative;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      cursor: none;
+      min-height: 100vh;
+    }
+
+    /* Accessibility: reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, html {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      body { cursor: auto; }
+      .custom-cursor, .cursor-aura, .satellite-orb { display: none !important; }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 240, 255, 0.3);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--electric-cyan); }
+
+    /* ==========================================================================
+       2. THREE.JS IMMERSIVE CANVAS & ATMOSPHERE
+       ========================================================================== */
+    #webgl-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Legacy background canvas fallback / silk field */
     #emotional-signal-canvas {
       position: fixed !important;
       top: 0 !important;
@@ -21,650 +120,1289 @@
       height: 100vh !important;
       pointer-events: none !important;
       z-index: 0 !important;
+      opacity: 0.45;
     }
 
-    /* 2. Soft Focus Vignette */
-    .assessment-focus-vignette {
-      position: fixed !important;
-      inset: 0 !important;
-      pointer-events: none !important;
-      z-index: 1 !important;
-      background: radial-gradient(ellipse at 50% 45%, rgba(11, 19, 29, 0.35) 0%, rgba(7, 14, 23, 0.78) 100%) !important;
-      backdrop-filter: blur(1px) !important;
+    /* Atmospheric Fog Overlay */
+    .viewport-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 40%, rgba(2,4,10,0.35) 20%, rgba(2, 4, 10, 0.88) 90%),
+                  linear-gradient(to bottom, rgba(2,4,10,0.5) 0%, transparent 20%, transparent 80%, rgba(2,4,10,0.95) 100%);
     }
 
-    /* 3. Navigation Bar Above Animation */
-    .navbar {
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 100 !important;
+    /* Scanline CRT FX */
+    .scanline-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.05) 0px,
+        rgba(0, 0, 0, 0.05) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      opacity: 0.35;
     }
 
-    /* 4. Assessment UI Floating Above Animation */
+    /* ==========================================================================
+       3. SCIENTIFIC INSTRUMENT CURSOR
+       ========================================================================== */
+    .custom-cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      background: var(--electric-cyan);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background-color 0.2s;
+      box-shadow: 0 0 14px 3px var(--electric-cyan);
+    }
+
+    .cursor-aura {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s ease-out, width 0.3s, height 0.3s, border-color 0.3s;
+    }
+
+    .cursor-aura::before, .cursor-aura::after {
+      content: '';
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-color: var(--electric-cyan);
+    }
+    .cursor-aura::before { top: -2px; left: -2px; border-top: 1px solid; border-left: 1px solid; }
+    .cursor-aura::after { bottom: -2px; right: -2px; border-bottom: 1px solid; border-right: 1px solid; }
+
+    .satellite-orb {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9997;
+      transform: translate(-50%, -50%);
+      background: var(--icy-teal);
+      box-shadow: 0 0 8px var(--icy-teal);
+      opacity: 0.7;
+    }
+
+    body:hover .custom-cursor.hovering {
+      width: 14px;
+      height: 14px;
+      background: var(--neural-violet);
+      box-shadow: 0 0 20px 4px var(--neural-violet);
+    }
+    body:hover .cursor-aura.hovering {
+      width: 56px;
+      height: 56px;
+      border-color: rgba(168, 85, 247, 0.6);
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    /* ==========================================================================
+       3B. ONENOTE-STYLE LASER POINTER INK TRAIL CANVAS & HUD
+       ========================================================================== */
+    #laser-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 2; /* Strictly behind content and text (z-index: 10) */
+    }
+
+    .laser-pointer-hud {
+      display: none !important;
+      position: fixed;
+      bottom: 22px;
+      right: 24px;
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      background: rgba(6, 11, 23, 0.90);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 7px 16px;
+      border-radius: 999px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      pointer-events: none;
+      letter-spacing: 0.08em;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.15), inset 0 0 10px rgba(0, 240, 255, 0.05);
+      animation: hud-fade-in 1.2s ease forwards;
+    }
+    @keyframes hud-fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .laser-beacon-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--electric-cyan);
+      box-shadow: 0 0 10px var(--electric-cyan), 0 0 20px var(--electric-cyan);
+      animation: laser-beacon-blink 1.6s infinite ease-in-out;
+    }
+    @keyframes laser-beacon-blink {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.4); opacity: 1; box-shadow: 0 0 15px var(--electric-cyan); }
+    }
+    .laser-hud-text b {
+      color: var(--electric-cyan);
+      font-weight: 600;
+    }
+    .laser-hud-tip {
+      color: var(--text-dim);
+      font-size: 0.62rem;
+      margin-left: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .laser-pointer-hud {
+      display: none !important; display: none; }
+    }
+
+    /* ==========================================================================
+       4. CAPSULE NAVIGATION BAR
+       ========================================================================== */
+    .capsule-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 48px);
+      max-width: 1100px;
+      height: 64px;
+      background: rgba(6, 11, 23, 0.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(0, 240, 255, 0.22);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.08);
+      border-radius: 999px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      transition: var(--trans-smooth);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .nav-logo-frame {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+    .nav-logo-frame img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+    .nav-brand-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 40%, var(--electric-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-brand-sub {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--electric-cyan);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      display: block;
+      margin-top: -2px;
+    }
+
+    /* Stepper Capsule HUD */
+    .nav-stepper-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(2, 4, 10, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      padding: 5px 12px;
+    }
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      padding: 4px 10px;
+      border-radius: 999px;
+      transition: var(--trans-smooth);
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .step-badge .badge-num {
+      font-size: 0.64rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .step-badge.active {
+      color: #02040a;
+      background: var(--electric-cyan);
+      font-weight: 700;
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.6);
+      border-color: var(--electric-cyan);
+    }
+    .step-badge.active .badge-num {
+      background: rgba(2, 4, 10, 0.25);
+      color: #02040a;
+    }
+    .step-badge.completed {
+      color: var(--icy-teal);
+      border-color: rgba(94, 242, 214, 0.35);
+      background: rgba(94, 242, 214, 0.1);
+    }
+    .step-divider {
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 0.65rem;
+    }
+
+    .nav-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-decoration: none;
+      transition: var(--trans-smooth);
+    }
+    .nav-back-btn:hover {
+      color: var(--electric-cyan);
+      border-color: var(--electric-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.2);
+    }
+
+    /* ==========================================================================
+       5. MAIN ASSESSMENT CONTAINER
+       ========================================================================== */
     .assessment-section {
-      position: relative !important;
-      z-index: 10 !important;
-      padding: 3rem 1.5rem 5rem !important;
+      position: relative;
+      z-index: 10;
+      padding: 120px 20px 80px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .assessment-container {
-      max-width: 860px !important;
-      margin: 0 auto !important;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
     }
 
+    /* Step Header */
     .step-header {
-      text-align: center !important;
-      margin-bottom: 2.2rem !important;
+      text-align: center;
+      margin-bottom: 2rem;
     }
-
+    .cyber-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--electric-cyan);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.12);
+    }
+    .cyber-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--electric-cyan);
+      box-shadow: 0 0 8px var(--electric-cyan);
+      animation: laser-beacon-blink 1.5s infinite;
+    }
     .step-header h2 {
-      font-size: clamp(2rem, 4vw, 2.7rem) !important;
-      font-weight: 750 !important;
-      letter-spacing: -0.04em !important;
-      margin-top: 0.8rem !important;
-      margin-bottom: 0.6rem !important;
-      color: #f8f4eb !important;
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--electric-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-
     .step-desc {
-      max-width: 660px !important;
-      margin: 0 auto !important;
-      color: #b9c4cc !important;
-      font-size: 0.98rem !important;
-      line-height: 1.6 !important;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
     }
 
-    /* 5. Frosted Glass Wizard Card (Translucent so 3D waves show through) */
+    /* Glassmorphic Cyber Card */
     .wizard-card {
-      background: linear-gradient(145deg, rgba(23, 38, 53, 0.72), rgba(12, 22, 33, 0.85)) !important;
-      border: 1px solid rgba(231, 213, 172, 0.22) !important;
-      border-radius: 24px !important;
-      padding: 2.8rem 2.4rem !important;
-      box-shadow: 0 28px 60px rgba(2, 8, 14, 0.65) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border-cyan);
+      border-radius: 18px;
+      padding: 2.2rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6), inset 0 0 25px rgba(0, 240, 255, 0.04);
+      transition: var(--trans-smooth);
+    }
+    .wizard-card::before, .wizard-card::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      pointer-events: none;
+    }
+    .wizard-card::before {
+      top: -1px;
+      left: -1px;
+      border-top: 2px solid var(--electric-cyan);
+      border-left: 2px solid var(--electric-cyan);
+      border-top-left-radius: 18px;
+    }
+    .wizard-card::after {
+      bottom: -1px;
+      right: -1px;
+      border-bottom: 2px solid var(--neural-violet);
+      border-right: 2px solid var(--neural-violet);
+      border-bottom-right-radius: 18px;
     }
 
-    .input-controls-top {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      margin-bottom: 1rem !important;
+    /* ==========================================================================
+       6. STEP 1: LINGUISTIC / NLP STREAM CONTROLS
+       ========================================================================== */
+    .signal-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
     }
-
-    .input-label {
-      font-size: 0.92rem !important;
-      font-weight: 600 !important;
-      color: #f6d99d !important;
-      letter-spacing: 0.02em !important;
+    .input-label-cyber {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--electric-cyan);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-
-    .quick-tools {
-      display: flex !important;
-      gap: 0.6rem !important;
-    }
-
-    .tool-btn {
-      background: rgba(229, 189, 115, 0.1) !important;
-      border: 1px solid rgba(229, 189, 115, 0.3) !important;
-      color: #f6d99d !important;
-      font-family: 'Inter', sans-serif !important;
-      font-size: 0.8rem !important;
-      font-weight: 600 !important;
-      padding: 0.35rem 0.85rem !important;
-      border-radius: 999px !important;
-      cursor: pointer !important;
-      transition: all 0.2s ease !important;
-    }
-
-    .tool-btn:hover {
-      background: rgba(229, 189, 115, 0.22) !important;
-      border-color: #e5bd73 !important;
-      transform: translateY(-1px) !important;
-    }
-
     .tool-btn-clear {
-      color: #82919e !important;
-      border-color: rgba(231, 213, 172, 0.16) !important;
-      background: transparent !important;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #fb7185;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--trans-fast);
     }
-
     .tool-btn-clear:hover {
-      color: #f8f4eb !important;
-      border-color: #b9c4cc !important;
+      background: rgba(244, 63, 94, 0.22);
+      border-color: #f43f5e;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
     }
 
-    .text-input-field {
-      width: 100% !important;
-      background: rgba(8, 15, 24, 0.85) !important;
-      border: 1px solid rgba(231, 213, 172, 0.25) !important;
-      border-radius: 16px !important;
-      padding: 1.2rem 1.4rem !important;
-      color: #f8f4eb !important;
-      font-family: 'Inter', sans-serif !important;
-      font-size: 1.02rem !important;
-      line-height: 1.65 !important;
-      resize: vertical !important;
-      min-height: 160px !important;
-      outline: none !important;
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4) !important;
-      transition: all 0.25s ease !important;
+    /* Sample Selector Pill Bar */
+    .sample-pill-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      background: rgba(2, 4, 10, 0.5);
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .sample-pill-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tool-btn-sample {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: var(--trans-fast);
+    }
+    .tool-btn-sample:hover {
+      color: var(--electric-cyan);
+      border-color: var(--electric-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
     }
 
-    .text-input-field:focus {
-      border-color: #e5bd73 !important;
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(229, 189, 115, 0.2) !important;
+    /* Cyber Terminal Textarea */
+    .cyber-textarea-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .cyber-textarea {
+      width: 100%;
+      min-height: 190px;
+      background: rgba(2, 4, 10, 0.75);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 12px;
+      padding: 1.2rem;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--text-main);
+      line-height: 1.65;
+      resize: vertical;
+      outline: none;
+      transition: var(--trans-smooth);
+    }
+    .cyber-textarea:focus {
+      border-color: var(--electric-cyan);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.22), inset 0 0 12px rgba(0, 240, 255, 0.04);
+    }
+    .cyber-textarea::placeholder {
+      color: var(--text-dim);
+      opacity: 0.6;
     }
 
-    .text-input-field::placeholder {
-      color: #788998 !important;
-      font-size: 0.95rem !important;
+    /* Textarea Telemetry Footer */
+    .textarea-telemetry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      padding: 0 4px;
+      margin-bottom: 1.5rem;
+    }
+    #signal-status-indicator {
+      color: var(--electric-cyan);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      transition: var(--trans-fast);
+    }
+    #text-validation-msg {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--bio-teal);
+      margin-bottom: 1.5rem;
+      display: block;
     }
 
-    .input-meta-bar {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      margin-top: 0.75rem !important;
-      font-size: 0.8rem !important;
-      color: #82919e !important;
-      font-family: 'JetBrains Mono', monospace !important;
+    /* ==========================================================================
+       7. STEP 2: WEARABLE SENSORS HUD
+       ========================================================================== */
+    .preset-selector-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(2, 4, 10, 0.6);
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      margin-bottom: 2rem;
+    }
+    .preset-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .preset-pill {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 7px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: var(--trans-smooth);
+    }
+    .preset-pill:hover {
+      color: var(--electric-cyan);
+      border-color: var(--electric-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+    #preset-stressed:hover {
+      color: #f43f5e;
+      border-color: #f43f5e;
+      background: rgba(244, 63, 94, 0.08);
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
     }
 
+    /* Biometric HUD Grid */
+    .hud-sensors-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.4rem;
+      margin: 1.5rem 0 2rem;
+    }
+    .hud-sensor-card {
+      position: relative;
+      background: rgba(6, 11, 23, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.2rem 1.4rem;
+      transition: var(--trans-smooth);
+    }
+    .hud-sensor-card:hover {
+      background: rgba(10, 20, 38, 0.88);
+      border-color: rgba(0, 240, 255, 0.35);
+      box-shadow: 0 6px 25px rgba(0, 240, 255, 0.1);
+    }
+    .hud-sensor-card::before, .hud-sensor-card::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      pointer-events: none;
+    }
+    .hud-sensor-card::before {
+      top: 0;
+      left: 0;
+      border-top: 1px solid rgba(0, 240, 255, 0.4);
+      border-left: 1px solid rgba(0, 240, 255, 0.4);
+    }
+    .hud-sensor-card::after {
+      bottom: 0;
+      right: 0;
+      border-bottom: 1px solid rgba(168, 85, 247, 0.4);
+      border-right: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .hud-sensor-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+    }
+    .hud-sensor-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .hud-sensor-icon {
+      font-size: 1.05rem;
+    }
+    .hud-sensor-name {
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .hud-sensor-unit {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      color: var(--text-dim);
+      display: block;
+    }
+    .hud-sensor-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Synced Numeric Input Box */
+    .sensor-num-input {
+      width: 76px;
+      background: rgba(2, 4, 10, 0.8);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--electric-cyan);
+      text-align: right;
+      outline: none;
+      transition: var(--trans-fast);
+    }
+    .sensor-num-input:focus {
+      border-color: var(--electric-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+    }
+
+    /* Status Indicator Dot */
+    .hud-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    /* Cyber Range Slider */
+    .hud-range {
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      cursor: pointer;
+      margin: 10px 0 6px;
+      transition: var(--trans-fast);
+    }
+    .hud-range:hover {
+      background: rgba(0, 240, 255, 0.2);
+    }
+    .hud-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--electric-cyan);
+      box-shadow: 0 0 10px var(--electric-cyan);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .hud-range::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      box-shadow: 0 0 16px var(--electric-cyan);
+    }
+    .hud-sensor-bot {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+    .hud-sensor-val-readout {
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       8. STEP 3: PRE-SYNTHESIS AUDIT & REVIEW
+       ========================================================================== */
+    .review-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .review-block {
+      background: rgba(2, 4, 10, 0.65);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 14px;
+      padding: 1.4rem;
+    }
+    .review-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .review-block-header h4 {
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--electric-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .edit-link-btn {
+      background: transparent;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      transition: var(--trans-fast);
+    }
+    .edit-link-btn:hover {
+      color: var(--electric-cyan);
+    }
+    .review-text-preview {
+      font-size: 0.88rem;
+      color: var(--text-main);
+      line-height: 1.6;
+      max-height: 160px;
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .review-sensors-summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+    }
+    .review-sensor-item {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .review-sensor-item b {
+      color: var(--electric-cyan);
+    }
+
+    /* Consent Checkbox */
+    .consent-box {
+      background: rgba(0, 240, 255, 0.03);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .checkbox-container input {
+      margin-top: 3px;
+      accent-color: var(--electric-cyan);
+      width: 16px;
+      height: 16px;
+    }
+    .consent-text {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .consent-text strong {
+      color: var(--electric-cyan);
+    }
+
+    /* Action Buttons */
     .step-actions {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      margin-top: 2.4rem !important;
-      padding-top: 1.6rem !important;
-      border-top: 1px solid rgba(231, 213, 172, 0.16) !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 1rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0.85rem 1.8rem;
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: var(--trans-smooth);
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .btn-hero {
+      background: linear-gradient(135deg, var(--electric-cyan), var(--neural-violet));
+      color: #02040a;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.4);
+    }
+    .btn-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.6);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background: rgba(0, 240, 255, 0.1);
+      border-color: var(--electric-cyan);
+      color: var(--electric-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
     }
 
-    /* ── Mobile Responsiveness ── */
-    @media (max-width: 680px) {
-      /* Hide stepper text, shrink nav */
-      .nav-capsule {
-        display: none !important;
-      }
+    /* ==========================================================================
+       9. STEP 4: 3D REAL-TIME FUSION PIPELINE
+       ========================================================================== */
+    .pipeline-container {
+      position: relative;
+      width: 100%;
+      height: 65vh;
+      min-height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    #fusion-pipeline-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+    #insight-card-container {
+      opacity: 0;
+      transform: translateX(30px);
+      transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 10;
+      width: 100%;
+      max-width: 360px;
+      margin-right: 1.5rem;
+    }
 
-      .assessment-section {
-        padding: 1.5rem 1rem 4rem !important;
+    /* Responsive Design */
+    @media (max-width: 820px) {
+      .capsule-nav {
+        width: calc(100% - 24px);
+        padding: 0 14px;
       }
-
-      .wizard-card {
-        padding: 1.6rem 1.2rem !important;
-        border-radius: 18px !important;
-      }
-
-      .step-header h2 {
-        font-size: 1.7rem !important;
-      }
-
-      .input-controls-top {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 0.8rem !important;
-      }
-
-      .quick-tools {
-        width: 100% !important;
-      }
-
-      .tool-btn {
-        flex: 1 !important;
-        text-align: center !important;
-      }
-
-      /* Sensors grid — 1 column on mobile */
-      .sensors-grid {
-        grid-template-columns: 1fr !important;
-      }
-
-      .step-actions {
-        flex-direction: column !important;
-        gap: 0.8rem !important;
-      }
-
-      .step-actions .btn {
-        width: 100% !important;
-        text-align: center !important;
-      }
-
-      /* Pipeline canvas step */
+      .nav-brand-sub { display: none; }
+      .hud-sensors-grid { grid-template-columns: 1fr; }
+      .review-grid { grid-template-columns: 1fr; }
       .pipeline-container {
-        height: 80vh !important;
-        min-height: 480px !important;
-        justify-content: center !important;
-        align-items: flex-end !important;
+        justify-content: center;
+        align-items: flex-end;
       }
-
       #insight-card-container {
-        margin: 0 1rem 1.5rem !important;
-        max-width: 100% !important;
-      }
-
-      /* Review grid */
-      .review-grid {
-        grid-template-columns: 1fr !important;
+        margin: 0 1rem 1.5rem;
+        max-width: 100%;
       }
     }
-
-    @media (max-width: 420px) {
-      .brand-name {
-        display: none !important;
-      }
-
-      .step-header h2 {
-        font-size: 1.45rem !important;
-      }
+    @media (max-width: 580px) {
+      .step-badge span:not(.badge-num) { display: none; }
+      .nav-stepper-cluster { gap: 4px; padding: 4px 8px; }
+      .step-header h2 { font-size: 1.65rem; }
+      .step-actions { flex-direction: column-reverse; }
+      .btn { width: 100%; }
     }
   </style>
 </head>
 <body>
 
-  <!-- 3D Living Background Canvas & Focus Zone -->
+  <!-- Custom Sci-Fi Cursor -->
+  <div class="custom-cursor" id="cursor-dot"></div>
+  <div class="cursor-aura" id="cursor-aura"></div>
+  <div class="satellite-orb" id="sat-1"></div>
+  <div class="satellite-orb" id="sat-2"></div>
+  <div class="satellite-orb" id="sat-3"></div>
+
+  <!-- OneNote-Style Quantum Laser Pointer Ink Trail Canvas -->
+  <canvas id="laser-canvas"></canvas>
+
+  <!-- Laser Pointer HUD Notification -->
+  <!-- Flashing Laser HUD removed -->
+    <div class="laser-hud-text">QUANTUM INK: <b>ACTIVE</b> <span class="laser-hud-tip">(MOUSE OVER / DRAW TO HIGHLIGHT)</span></div>
+  </div>
+
+  <!-- 3D Three.js WebGL Particle Universe Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Legacy silk canvas fallback for emotional signal field -->
   <canvas id="emotional-signal-canvas"></canvas>
-  <div class="assessment-focus-vignette"></div>
 
-  <!-- Navigation Bar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="brand">
-        <div class="brand-logo-frame">
-          <img src="assets/logo/logo.png" alt="moodcompiler logo" class="brand-logo" />
-        </div>
-        <span class="brand-name">moodcompiler</span>
-      </a>
-      
-      <!-- Stepper Navigation Pipeline -->
-      <div class="nav-capsule" style="font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.05em;">
-        <span class="step-badge active" id="step-badge-1">01 LANGUAGE</span>
-        <span class="nav-dot" style="opacity: 0.4;">—</span>
-        <span class="step-badge" id="step-badge-2">02 PHYSIOLOGY</span>
-        <span class="nav-dot" style="opacity: 0.4;">—</span>
-        <span class="step-badge" id="step-badge-3">03 SYNTHESIS</span>
-      </div>
+  <!-- Atmosphere & CRT Overlays -->
+  <div class="viewport-overlay"></div>
+  <div class="scanline-layer"></div>
 
-      <div class="nav-actions">
-        <a href="index.html" class="btn btn-secondary" style="padding: 0.52rem 1.15rem; font-size: 0.84rem;">← Back Home</a>
+  <!-- Floating Capsule Navigation -->
+  <nav class="capsule-nav">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-logo-frame">
+        <img src="assets/logo/logo.png" alt="moodcompiler logo" />
       </div>
+      <div>
+        <span class="nav-brand-title">moodcompiler</span>
+        <span class="nav-brand-sub">NEURAL ASSESSMENT</span>
+      </div>
+    </a>
+
+    <!-- Stepper Navigation Pipeline HUD -->
+    <div class="nav-stepper-cluster">
+      <span class="step-badge active" id="step-badge-1"><span class="badge-num">01</span> <span>LANGUAGE</span></span>
+      <span class="step-divider">—</span>
+      <span class="step-badge" id="step-badge-2"><span class="badge-num">02</span> <span>PHYSIOLOGY</span></span>
+      <span class="step-divider">—</span>
+      <span class="step-badge" id="step-badge-3"><span class="badge-num">03</span> <span>SYNTHESIS</span></span>
+    </div>
+
+    <div class="nav-actions">
+      <a href="index.html" class="nav-back-btn">← Back Home</a>
     </div>
   </nav>
 
-  <!-- Assessment Main Wizard Container -->
+  <!-- Main Wizard Interface -->
   <main class="assessment-section">
     <div class="assessment-container">
 
-      <!-- ================= STEP 1: LINGUISTIC SIGNAL ================= -->
+      <!-- ================= STEP 1: LINGUISTIC BIOMARKER INGESTION ================= -->
       <div class="wizard-step active" id="step-1">
         <div class="step-header">
-          <div class="badge">Modality 01 • Linguistic Biomarkers</div>
+          <div class="cyber-badge"><div class="cyber-badge-dot"></div> MODALITY 01 // TEXTUAL BIOMARKER INGESTION</div>
           <h2>Linguistic Signal Context</h2>
           <p class="step-desc">
-            Provide a conversational excerpt or personal reflection. The language transformer analyzes linguistic context, sentiment depth, and affective tone to establish an initial emotional baseline.
+            Provide a conversational reflection, journal entry, or discourse excerpt. The language transformer decomposes affective valence, cognitive framing, and linguistic density to calibrate your emotional baseline.
           </p>
         </div>
 
         <div class="card wizard-card">
-          <div class="input-controls-top" style="flex-direction: column; align-items: flex-start; gap: 0.8rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-              <label for="social-text" class="input-label" style="font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;">
-                [ LINGUISTIC SIGNAL INPUT ]
-              </label>
-              <button type="button" class="tool-btn tool-btn-clear" id="btn-clear-text" style="font-family: var(--font-mono); text-transform: uppercase; font-size: 0.7rem;">
-                CLEAR SIGNAL
-              </button>
-            </div>
-
-            <!-- Quick Examiner Sample Pills -->
-            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; width: 100%; position: relative; z-index: 20;">
-              <span style="font-family: var(--font-mono); font-size: 0.72rem; color: #82919e; margin-right: 0.3rem;">EXAMINER PRESETS:</span>
-              <button type="button" class="tool-btn" onclick="loadSampleDirect('normal')" style="font-family: var(--font-mono); font-size: 0.7rem; border-color: rgba(100,184,173,0.4); color: var(--teal); cursor: pointer; position: relative; z-index: 30;">
-                🌿 Normal / Healthy
-              </button>
-              <button type="button" class="tool-btn" onclick="loadSampleDirect('mild')" style="font-family: var(--font-mono); font-size: 0.7rem; border-color: rgba(139,196,184,0.4); color: #8bc4b8; cursor: pointer; position: relative; z-index: 30;">
-                ⛅ Mild Stress
-              </button>
-              <button type="button" class="tool-btn" onclick="loadSampleDirect('moderate')" style="font-family: var(--font-mono); font-size: 0.7rem; border-color: rgba(229,189,115,0.4); color: var(--gold); cursor: pointer; position: relative; z-index: 30;">
-                🌧️ Moderate Load
-              </button>
-              <button type="button" class="tool-btn" onclick="loadSampleDirect('severe')" style="font-family: var(--font-mono); font-size: 0.7rem; border-color: rgba(196,136,160,0.4); color: #c488a0; cursor: pointer; position: relative; z-index: 30;">
-                ⛈️ Severe Distress
-              </button>
-            </div>
+          <!-- Textarea Controls Top -->
+          <div class="signal-header-row">
+            <label for="social-text" class="input-label-cyber">
+              [ LINGUISTIC SIGNAL INPUT ]
+            </label>
+            <button type="button" class="tool-btn-clear" id="btn-clear-text">
+              CLEAR SIGNAL
+            </button>
           </div>
 
-          <script>
-            function loadSampleDirect(type) {
-              var samples = {
-                normal: "Today was a productive and balanced day. I went for a morning walk, completed my tasks without excessive anxiety, and feel optimistic about the coming week.",
-                mild: "Feeling a bit worn down and tired this week. The workload is noticeable and I am finding it slightly difficult to unwind in the evenings, but still managing daily routines.",
-                moderate: "Everything feels noticeably heavy lately. I wake up unrefreshed no matter how long I sleep, disconnected from my usual hobbies, and struggle to find joy in everyday things.",
-                severe: "Honestly, everything just feels completely exhausted and empty. Getting out of bed takes immense effort. I feel an overwhelming sense of hopelessness and detached from everyone."
-              };
-              var area = document.getElementById('social-text');
-              if (area && samples[type]) {
-                area.value = samples[type];
-                area.dispatchEvent(new Event('input', { bubbles: true }));
-              }
-            }
-          </script>
-
-          <!-- Signal Status Visualizer -->
-          <div id="signal-status-indicator" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--teal); margin-bottom: 0.8rem; height: 16px; opacity: 0; transition: opacity 0.3s ease;">
-            SIGNAL CAPTURE ● ○ ○ ○ ○
+          <!-- Quick Examiner Clinical Presets -->
+          <div class="sample-pill-bar">
+            <span class="sample-pill-label">Clinical Examiner Presets:</span>
+            <button type="button" class="tool-btn-sample" id="btn-sample-normal" onclick="loadSampleDirect('normal')">Baseline / Balanced</button>
+            <button type="button" class="tool-btn-sample" id="btn-sample-mild" onclick="loadSampleDirect('mild')">Mild Strain</button>
+            <button type="button" class="tool-btn-sample" id="btn-sample-moderate" onclick="loadSampleDirect('moderate')">Moderate Distress</button>
+            <button type="button" class="tool-btn-sample" id="btn-sample-severe" onclick="loadSampleDirect('severe')">Severe Dysregulation</button>
           </div>
 
-          <textarea 
-            id="social-text" 
-            class="text-input-field" 
-            rows="6" 
-            placeholder="Awaiting text input... (e.g. 'Lately I feel completely exhausted, finding it hard to get out of bed...')"
-            maxlength="1500"
-          ></textarea>
-
-          <div class="input-meta-bar">
-            <span class="char-count" id="char-count">0 / 1500 <span style="opacity: 0.5;">SIGNAL LENGTH</span></span>
-            <span class="validation-tip" id="text-validation-msg" style="color: var(--teal);">System Ready. Waiting for input...</span>
+          <!-- Cyber Textarea -->
+          <div class="cyber-textarea-wrap">
+            <textarea
+              id="social-text"
+              class="cyber-textarea"
+              maxlength="1500"
+              placeholder="Paste or write thoughts here... e.g. 'I wake up feeling completely drained. Work has been overwhelming, and even simple daily tasks feel like climbing a mountain...'"
+            ></textarea>
           </div>
 
-          <div class="step-actions">
-            <div></div> <!-- Spacer -->
-            <button type="button" class="btn btn-hero" id="btn-to-step-2">INITIALIZE PHYSIOLOGY CAPTURE →</button>
+          <!-- Real-Time Textarea Telemetry -->
+          <div class="textarea-telemetry">
+            <span id="char-count">0 / 1500 <span style="opacity: 0.5;">SIGNAL LENGTH</span></span>
+            <span id="signal-status-indicator" style="opacity: 0;">SIGNAL CAPTURE ● ○ ○ ○ ○</span>
+          </div>
+
+          <span id="text-validation-msg">System Ready. Waiting for input...</span>
+
+          <!-- Step 1 Navigation CTA -->
+          <div class="step-actions" style="justify-content: flex-end;">
+            <button type="button" class="btn btn-hero" id="btn-to-step-2">
+              INITIALIZE PHYSIOLOGY CAPTURE →
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- ================= STEP 2: WEARABLE PHYSIOLOGY ================= -->
+      <!-- ================= STEP 2: WEARABLE BIOSIGNAL TELEMETRY ================= -->
       <div class="wizard-step" id="step-2" style="display: none;">
         <div class="step-header">
-          <div class="badge">Modality 02 &bull; Wearable Biosignals</div>
-          <h2>Physiological &amp; Behavioral Signals</h2>
-          <p class="step-desc">Adjust physiological vitals, sleep patterns, and activity biomarkers to model different patient profiles.</p>
+          <div class="cyber-badge"><div class="cyber-badge-dot"></div> MODALITY 02 // MULTIMODAL SENSOR TELEMETRY</div>
+          <h2>Wearable Physiological Stream</h2>
+          <p class="step-desc">
+            Calibrate autonomic vitals, electrodermal arousal, and sleep/activity biomarkers to model individualized physiological resilience profiles.
+          </p>
         </div>
 
         <div class="card wizard-card">
-          <!-- Quick Presets -->
+          <!-- Quick Presets Switcher -->
           <div class="preset-selector-bar">
-            <span class="preset-label">Quick Presets:</span>
-            <button type="button" class="preset-pill" id="preset-calm">Healthy / Baseline</button>
-            <button type="button" class="preset-pill" id="preset-stressed">High Risk / Dysregulated</button>
+            <span class="preset-label">Biometric Calibration Presets:</span>
+            <button type="button" class="preset-pill" id="preset-calm">⚡ Healthy / Baseline</button>
+            <button type="button" class="preset-pill" id="preset-stressed">⚠️ High Risk / Dysregulated</button>
           </div>
 
-          <style>
-            .hud-sensors-grid {
-              display: grid; grid-template-columns: repeat(2, 1fr);
-              gap: 1.5rem; margin: 1.5rem 0;
-            }
-            .hud-sensor-card {
-              position: relative; padding: 1.2rem 1.4rem 1.4rem;
-              background: rgba(8,14,24,0.5); border-radius: 2px; transition: background 0.3s;
-            }
-            .hud-sensor-card:hover { background: rgba(14,22,36,0.8); }
-            .hud-sensor-card::before {
-              content:''; position:absolute; top:0; left:0; width:12px; height:12px;
-              border-top:1px solid rgba(255,255,255,0.12); border-left:1px solid rgba(255,255,255,0.12); transition:all 0.3s;
-            }
-            .hud-sensor-card::after {
-              content:''; position:absolute; bottom:0; right:0; width:12px; height:12px;
-              border-bottom:1px solid rgba(255,255,255,0.12); border-right:1px solid rgba(255,255,255,0.12); transition:all 0.3s;
-            }
-            .hud-sensor-card:hover::before, .hud-sensor-card:hover::after {
-              border-color:rgba(100,184,173,0.8); width:20px; height:20px;
-            }
-            .hud-sensor-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
-            .hud-sensor-icon-label { display:flex; align-items:center; gap:0.45rem; }
-            .hud-sensor-icon { font-size:1rem; }
-            .hud-sensor-label {
-              font-family:'JetBrains Mono',monospace; font-size:0.67rem;
-              letter-spacing:0.12em; text-transform:uppercase; color:#82919e;
-            }
-            .hud-sensor-val-box { display:flex; align-items:baseline; gap:0.3rem; }
-            .hud-sensor-numval {
-              font-family:'JetBrains Mono',monospace; font-size:1.3rem; font-weight:700; color:#fff;
-              background:transparent; border:none; border-bottom:1px solid rgba(100,184,173,0.3);
-              outline:none; width:62px; text-align:right; padding:0 2px 2px; transition:border-color 0.2s;
-            }
-            .hud-sensor-numval:focus { border-color:rgba(100,184,173,0.9); }
-            .hud-sensor-unit { font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:#5a6b7c; }
-            .hud-range {
-              -webkit-appearance:none; appearance:none; width:100%; height:1px;
-              background:rgba(255,255,255,0.12); outline:none; border:none; cursor:pointer;
-            }
-            .hud-range::-webkit-slider-thumb {
-              -webkit-appearance:none; width:10px; height:10px; border-radius:50%;
-              background:#fff; box-shadow:0 0 8px 2px rgba(100,184,173,0.9); cursor:pointer; transition:transform 0.15s;
-            }
-            .hud-range:hover::-webkit-slider-thumb { transform:scale(1.5); }
-            .hud-range::-moz-range-thumb {
-              width:10px; height:10px; border-radius:50%; background:#fff; border:none;
-              box-shadow:0 0 8px 2px rgba(100,184,173,0.9); cursor:pointer;
-            }
-            .hud-sensor-scale {
-              display:flex; justify-content:space-between; margin-top:0.5rem;
-              font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:#3a4a58; letter-spacing:0.05em;
-            }
-            .hud-status-dot {
-              width:6px; height:6px; border-radius:50%; flex-shrink:0;
-              background:rgba(100,184,173,0.8); box-shadow:0 0 6px 2px rgba(100,184,173,0.5);
-              transition:background 0.4s, box-shadow 0.4s;
-            }
-            @media (max-width:700px) { .hud-sensors-grid { grid-template-columns:1fr; } }
-          </style>
-
-          <!-- HUD Sensor Cards Grid -->
+          <!-- Sensor HUD Grid -->
           <div class="hud-sensors-grid" id="hud-sensors-grid">
-
-            <!-- Heart Rate -->
+            
+            <!-- Sensor 1: Heart Rate -->
             <div class="hud-sensor-card">
               <div class="hud-sensor-top">
-                <div class="hud-sensor-icon-label">
-                  <span class="hud-status-dot" id="dot-hr"></span>
-                  <span class="hud-sensor-icon">&#10084;&#65039;</span>
-                  <span class="hud-sensor-label">Heart Rate</span>
+                <div class="hud-sensor-left">
+                  <span class="hud-sensor-icon">❤️</span>
+                  <div>
+                    <div class="hud-sensor-name">Resting Heart Rate</div>
+                    <span class="hud-sensor-unit">BPM (Beats/Min)</span>
+                  </div>
                 </div>
-                <div class="hud-sensor-val-box">
-                  <input type="number" class="hud-sensor-numval sensor-num-input" id="num-hr" min="45" max="150" value="74" />
-                  <span class="hud-sensor-unit">bpm</span>
+                <div class="hud-sensor-right">
+                  <div class="hud-status-dot" id="dot-hr"></div>
+                  <input type="number" class="sensor-num-input" id="num-hr" min="45" max="150" value="74" />
                 </div>
               </div>
               <input type="range" class="hud-range" id="input-hr" min="45" max="150" value="74" />
-              <div class="hud-sensor-scale"><span>45 bpm</span><span>150 bpm</span></div>
-              <span class="sensor-value" id="val-hr" style="display:none">74</span>
+              <div class="hud-sensor-bot">
+                <span>45 BPM</span>
+                <span class="hud-sensor-val-readout" id="val-hr">74 BPM</span>
+                <span>150 BPM</span>
+              </div>
             </div>
 
-            <!-- HRV -->
+            <!-- Sensor 2: HRV (SDNN) -->
             <div class="hud-sensor-card">
               <div class="hud-sensor-top">
-                <div class="hud-sensor-icon-label">
-                  <span class="hud-status-dot" id="dot-hrv"></span>
-                  <span class="hud-sensor-icon">&#128147;</span>
-                  <span class="hud-sensor-label">HRV</span>
+                <div class="hud-sensor-left">
+                  <span class="hud-sensor-icon">📈</span>
+                  <div>
+                    <div class="hud-sensor-name">HRV (SDNN)</div>
+                    <span class="hud-sensor-unit">ms (Vagal Tone)</span>
+                  </div>
                 </div>
-                <div class="hud-sensor-val-box">
-                  <input type="number" class="hud-sensor-numval sensor-num-input" id="num-hrv" min="10" max="80" value="40" />
-                  <span class="hud-sensor-unit">ms</span>
+                <div class="hud-sensor-right">
+                  <div class="hud-status-dot" id="dot-hrv"></div>
+                  <input type="number" class="sensor-num-input" id="num-hrv" min="10" max="80" value="40" />
                 </div>
               </div>
               <input type="range" class="hud-range" id="input-hrv" min="10" max="80" value="40" />
-              <div class="hud-sensor-scale"><span>10 ms</span><span>80 ms</span></div>
-              <span class="sensor-value" id="val-hrv" style="display:none">40</span>
+              <div class="hud-sensor-bot">
+                <span>10 ms</span>
+                <span class="hud-sensor-val-readout" id="val-hrv">40 ms</span>
+                <span>80 ms</span>
+              </div>
             </div>
 
-            <!-- Skin Conductance (EDA) -->
+            <!-- Sensor 3: EDA (Electrodermal Activity) -->
             <div class="hud-sensor-card">
               <div class="hud-sensor-top">
-                <div class="hud-sensor-icon-label">
-                  <span class="hud-status-dot" id="dot-eda"></span>
-                  <span class="hud-sensor-icon">&#9889;</span>
-                  <span class="hud-sensor-label">Skin Conductance (EDA)</span>
+                <div class="hud-sensor-left">
+                  <span class="hud-sensor-icon">⚡</span>
+                  <div>
+                    <div class="hud-sensor-name">Electrodermal Activity (EDA)</div>
+                    <span class="hud-sensor-unit">&mu;S (Sympathetic Arousal)</span>
+                  </div>
                 </div>
-                <div class="hud-sensor-val-box">
-                  <input type="number" step="0.1" class="hud-sensor-numval sensor-num-input" id="num-eda" min="0.1" max="15.0" value="4.0" />
-                  <span class="hud-sensor-unit">&#181;S</span>
+                <div class="hud-sensor-right">
+                  <div class="hud-status-dot" id="dot-eda"></div>
+                  <input type="number" step="0.1" class="sensor-num-input" id="num-eda" min="0.1" max="15.0" value="4.0" />
                 </div>
               </div>
               <input type="range" class="hud-range" id="input-eda" min="0.1" max="15.0" step="0.1" value="4.0" />
-              <div class="hud-sensor-scale"><span>0.1</span><span>15.0 &#181;S</span></div>
-              <span class="sensor-value" id="val-eda" style="display:none">4.0</span>
+              <div class="hud-sensor-bot">
+                <span>0.1 &mu;S</span>
+                <span class="hud-sensor-val-readout" id="val-eda">4.0 µS</span>
+                <span>15.0 &mu;S</span>
+              </div>
             </div>
 
-            <!-- Skin Temperature -->
+            <!-- Sensor 4: Skin Temperature -->
             <div class="hud-sensor-card">
               <div class="hud-sensor-top">
-                <div class="hud-sensor-icon-label">
-                  <span class="hud-status-dot" id="dot-temp"></span>
-                  <span class="hud-sensor-icon">&#127777;&#65039;</span>
-                  <span class="hud-sensor-label">Skin Temperature</span>
+                <div class="hud-sensor-left">
+                  <span class="hud-sensor-icon">🌡️</span>
+                  <div>
+                    <div class="hud-sensor-name">Peripheral Skin Temp</div>
+                    <span class="hud-sensor-unit">&deg;C (Vasoconstriction)</span>
+                  </div>
                 </div>
-                <div class="hud-sensor-val-box">
-                  <input type="number" step="0.1" class="hud-sensor-numval sensor-num-input" id="num-temp" min="28.0" max="38.0" value="33.5" />
-                  <span class="hud-sensor-unit">&#176;C</span>
+                <div class="hud-sensor-right">
+                  <div class="hud-status-dot" id="dot-temp"></div>
+                  <input type="number" step="0.1" class="sensor-num-input" id="num-temp" min="28.0" max="38.0" value="33.5" />
                 </div>
               </div>
               <input type="range" class="hud-range" id="input-temp" min="28.0" max="38.0" step="0.1" value="33.5" />
-              <div class="hud-sensor-scale"><span>28 &#176;C</span><span>38 &#176;C</span></div>
-              <span class="sensor-value" id="val-temp" style="display:none">33.5</span>
+              <div class="hud-sensor-bot">
+                <span>28.0 &deg;C</span>
+                <span class="hud-sensor-val-readout" id="val-temp">33.5 °C</span>
+                <span>38.0 &deg;C</span>
+              </div>
             </div>
 
-            <!-- Respiration Rate -->
+            <!-- Sensor 5: Respiration Rate -->
             <div class="hud-sensor-card">
               <div class="hud-sensor-top">
-                <div class="hud-sensor-icon-label">
-                  <span class="hud-status-dot" id="dot-resp"></span>
-                  <span class="hud-sensor-icon">&#129409;</span>
-                  <span class="hud-sensor-label">Respiration Rate</span>
+                <div class="hud-sensor-left">
+                  <span class="hud-sensor-icon">🫁</span>
+                  <div>
+                    <div class="hud-sensor-name">Respiration Rate</div>
+                    <span class="hud-sensor-unit">BrPM (Breaths/Min)</span>
+                  </div>
                 </div>
-                <div class="hud-sensor-val-box">
-                  <input type="number" class="hud-sensor-numval sensor-num-input" id="num-resp" min="8" max="30" value="16" />
-                  <span class="hud-sensor-unit">bpm</span>
+                <div class="hud-sensor-right">
+                  <div class="hud-status-dot" id="dot-resp"></div>
+                  <input type="number" class="sensor-num-input" id="num-resp" min="8" max="30" value="16" />
                 </div>
               </div>
               <input type="range" class="hud-range" id="input-resp" min="8" max="30" value="16" />
-              <div class="hud-sensor-scale"><span>8 bpm</span><span>30 bpm</span></div>
-              <span class="sensor-value" id="val-resp" style="display:none">16</span>
+              <div class="hud-sensor-bot">
+                <span>8 BrPM</span>
+                <span class="hud-sensor-val-readout" id="val-resp">16 BrPM</span>
+                <span>30 BrPM</span>
+              </div>
             </div>
 
-            <!-- Sleep Duration -->
+            <!-- Sensor 6: Sleep Duration -->
             <div class="hud-sensor-card">
               <div class="hud-sensor-top">
-                <div class="hud-sensor-icon-label">
-                  <span class="hud-status-dot" id="dot-sleep"></span>
-                  <span class="hud-sensor-icon">&#128564;</span>
-                  <span class="hud-sensor-label">Sleep Duration</span>
+                <div class="hud-sensor-left">
+                  <span class="hud-sensor-icon">🌙</span>
+                  <div>
+                    <div class="hud-sensor-name">Sleep Duration</div>
+                    <span class="hud-sensor-unit">Hours (Circadian Rest)</span>
+                  </div>
                 </div>
-                <div class="hud-sensor-val-box">
-                  <input type="number" step="0.1" class="hud-sensor-numval sensor-num-input" id="num-sleep" min="2.0" max="12.0" value="7.0" />
-                  <span class="hud-sensor-unit">hrs</span>
+                <div class="hud-sensor-right">
+                  <div class="hud-status-dot" id="dot-sleep"></div>
+                  <input type="number" step="0.1" class="sensor-num-input" id="num-sleep" min="2.0" max="12.0" value="7.0" />
                 </div>
               </div>
               <input type="range" class="hud-range" id="input-sleep" min="2.0" max="12.0" step="0.1" value="7.0" />
-              <div class="hud-sensor-scale"><span>2 hrs</span><span>12 hrs</span></div>
-              <span class="sensor-value" id="val-sleep" style="display:none">7.0</span>
+              <div class="hud-sensor-bot">
+                <span>2.0 hrs</span>
+                <span class="hud-sensor-val-readout" id="val-sleep">7.0 hrs</span>
+                <span>12.0 hrs</span>
+              </div>
             </div>
 
-            <!-- Daily Steps -->
+            <!-- Sensor 7: Daily Steps -->
             <div class="hud-sensor-card">
               <div class="hud-sensor-top">
-                <div class="hud-sensor-icon-label">
-                  <span class="hud-status-dot" id="dot-steps"></span>
-                  <span class="hud-sensor-icon">&#128095;</span>
-                  <span class="hud-sensor-label">Daily Steps</span>
+                <div class="hud-sensor-left">
+                  <span class="hud-sensor-icon">👟</span>
+                  <div>
+                    <div class="hud-sensor-name">Daily Steps</div>
+                    <span class="hud-sensor-unit">Count (Locomotor Activity)</span>
+                  </div>
                 </div>
-                <div class="hud-sensor-val-box">
-                  <input type="number" step="100" class="hud-sensor-numval sensor-num-input" id="num-steps" min="500" max="18000" value="5500" style="width:76px;" />
-                  <span class="hud-sensor-unit">steps</span>
+                <div class="hud-sensor-right">
+                  <div class="hud-status-dot" id="dot-steps"></div>
+                  <input type="number" step="100" class="sensor-num-input" id="num-steps" min="500" max="18000" value="5500" />
                 </div>
               </div>
               <input type="range" class="hud-range" id="input-steps" min="500" max="18000" step="100" value="5500" />
-              <div class="hud-sensor-scale"><span>500</span><span>18,000</span></div>
-              <span class="sensor-value" id="val-steps" style="display:none">5500</span>
+              <div class="hud-sensor-bot">
+                <span>500</span>
+                <span class="hud-sensor-val-readout" id="val-steps">5500 steps</span>
+                <span>18000</span>
+              </div>
             </div>
 
-            <!-- Sedentary Time -->
+            <!-- Sensor 8: Sedentary Behavior -->
             <div class="hud-sensor-card">
               <div class="hud-sensor-top">
-                <div class="hud-sensor-icon-label">
-                  <span class="hud-status-dot" id="dot-sedentary"></span>
-                  <span class="hud-sensor-icon">&#129105;</span>
-                  <span class="hud-sensor-label">Sedentary Time</span>
+                <div class="hud-sensor-left">
+                  <span class="hud-sensor-icon">🪑</span>
+                  <div>
+                    <div class="hud-sensor-name">Sedentary Time</div>
+                    <span class="hud-sensor-unit">Hours (Daily Inactivity)</span>
+                  </div>
                 </div>
-                <div class="hud-sensor-val-box">
-                  <input type="number" step="0.1" class="hud-sensor-numval sensor-num-input" id="num-sedentary" min="2.0" max="16.0" value="8.0" />
-                  <span class="hud-sensor-unit">hrs</span>
+                <div class="hud-sensor-right">
+                  <div class="hud-status-dot" id="dot-sedentary"></div>
+                  <input type="number" step="0.1" class="sensor-num-input" id="num-sedentary" min="2.0" max="16.0" value="8.0" />
                 </div>
               </div>
               <input type="range" class="hud-range" id="input-sedentary" min="2.0" max="16.0" step="0.1" value="8.0" />
-              <div class="hud-sensor-scale"><span>2 hrs</span><span>16 hrs</span></div>
-              <span class="sensor-value" id="val-sedentary" style="display:none">8.0</span>
+              <div class="hud-sensor-bot">
+                <span>2.0 hrs</span>
+                <span class="hud-sensor-val-readout" id="val-sedentary">8.0 hrs</span>
+                <span>16.0 hrs</span>
+              </div>
             </div>
 
-          </div><!-- /hud-sensors-grid -->
+          </div>
 
-          <script>
-            (function() {
-              var sensors = [
-                {id:'hr',       low:60,   high:90,   inv:true },
-                {id:'hrv',      low:30,   high:60,   inv:false},
-                {id:'eda',      low:2,    high:6,    inv:true },
-                {id:'temp',     low:30,   high:36,   inv:false},
-                {id:'resp',     low:12,   high:20,   inv:true },
-                {id:'sleep',    low:6,    high:9,    inv:false},
-                {id:'steps',    low:3000, high:8000, inv:false},
-                {id:'sedentary',low:6,    high:10,   inv:true }
-              ];
-              sensors.forEach(function(s) {
-                var slider = document.getElementById('input-'+s.id);
-                var numEl  = document.getElementById('num-'+s.id);
-                var dot    = document.getElementById('dot-'+s.id);
-                var valEl  = document.getElementById('val-'+s.id);
-                if(!slider || !numEl) return;
-                function updateDot(v) {
-                  if(!dot) return;
-                  var val = parseFloat(v), status = 'good';
-                  if(s.inv){ if(val>s.high) status='bad'; else if(val>s.low) status='mid'; }
-                  else     { if(val<s.low)  status='bad'; else if(val<s.high) status='mid'; }
-                  var c = {good:['rgba(100,184,173,0.9)','rgba(100,184,173,0.5)'],mid:['rgba(229,189,115,0.9)','rgba(229,189,115,0.5)'],bad:['rgba(255,90,90,0.9)','rgba(255,90,90,0.5)']};
-                  dot.style.background = c[status][0];
-                  dot.style.boxShadow  = '0 0 6px 2px '+c[status][1];
-                }
-                slider.addEventListener('input', function(){
-                  numEl.value = slider.value;
-                  if(valEl) valEl.innerText = slider.value;
-                  updateDot(slider.value);
-                });
-                numEl.addEventListener('input', function(){
-                  var v = parseFloat(numEl.value);
-                  if(isNaN(v)) return;
-                  v = Math.min(Math.max(v, parseFloat(slider.min)), parseFloat(slider.max));
-                  slider.value = v;
-                  if(valEl) valEl.innerText = v;
-                  updateDot(v);
-                });
-                updateDot(slider.value);
-              });
-            })();
-          </script>
-
+          <!-- Step 2 Navigation Actions -->
           <div class="step-actions">
-            <button type="button" class="btn btn-secondary" id="btn-back-to-1">&#8592; Back to Text</button>
+            <button type="button" class="btn btn-secondary" id="btn-back-to-1">&#8592; Back to Linguistic Signal</button>
             <button type="button" class="btn btn-hero" id="btn-to-step-3">Proceed to Synthesis &#8594;</button>
           </div>
         </div>
       </div>
 
-      <!-- ================= STEP 3: REVIEW & RUN ================= -->
+      <!-- ================= STEP 3: PRE-SYNTHESIS AUDIT & CONSENT ================= -->
       <div class="wizard-step" id="step-3" style="display: none;">
         <div class="step-header">
-          <div class="badge">Synthesis • Ready for Analysis</div>
+          <div class="cyber-badge"><div class="cyber-badge-dot"></div> STAGE 03 // PRE-SYNTHESIS AUDIT</div>
           <h2>Review Multimodal Signals</h2>
           <p class="step-desc">
-            Verify both modalities before passing signals into the Transformer fusion pipeline.
+            Verify both modalities before passing fused tensors into the Cross-Attention Transformer pipeline.
           </p>
         </div>
 
         <div class="card wizard-card">
           <div class="review-grid">
+            <!-- Linguistic Review -->
             <div class="review-block">
               <div class="review-block-header">
                 <h4>💬 Linguistic Context Excerpt</h4>
@@ -675,6 +1413,7 @@
               </div>
             </div>
 
+            <!-- Wearable Review -->
             <div class="review-block">
               <div class="review-block-header">
                 <h4>⌚ Wearable Biomarkers Snapshot</h4>
@@ -684,16 +1423,17 @@
             </div>
           </div>
 
+          <!-- Consent Declaration -->
           <div class="consent-box">
             <label class="checkbox-container">
               <input type="checkbox" id="chk-consent" checked />
-              <span class="checkmark"></span>
               <span class="consent-text">
-                I understand that <strong>moodcompiler</strong> is an academic research prototype. Outputs represent exploratory algorithmic severity estimates, <u>not</u> medical diagnostic conclusions.
+                I understand that <strong>moodcompiler</strong> is an academic multimodal research prototype. Inferred outputs represent exploratory algorithmic severity projections, <u>not</u> definitive medical diagnostic verdicts.
               </span>
             </label>
           </div>
 
+          <!-- Step 3 Navigation Actions -->
           <div class="step-actions">
             <button type="button" class="btn btn-secondary" id="btn-back-to-2">← Back to Wearables</button>
             <button type="button" class="btn btn-hero" id="btn-start-analysis">Compile & Analyze Signals ⚡</button>
@@ -701,30 +1441,30 @@
         </div>
       </div>
 
-      <!-- ================= STEP 4: 3D AI FUSION & INSIGHT ================= -->
+      <!-- ================= STEP 4: 3D REAL-TIME AI FUSION PIPELINE ================= -->
       <div class="wizard-step" id="step-4" style="display: none;">
-        <div class="pipeline-container" style="position: relative; width: 100%; height: 65vh; min-height: 550px; display: flex; align-items: center; justify-content: flex-end;">
+        <div class="pipeline-container">
           
-          <!-- The 3D Pipeline Canvas -->
-          <canvas id="fusion-pipeline-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></canvas>
+          <!-- 3D Holographic Pipeline Canvas -->
+          <canvas id="fusion-pipeline-canvas"></canvas>
 
-          <!-- Output Insight Card (Hidden initially, slides in from the right) -->
-          <div id="insight-card-container" style="opacity: 0; transform: translateX(30px); transition: all 1.5s cubic-bezier(0.16, 1, 0.3, 1); z-index: 10; width: 100%; max-width: 340px; margin-right: 2rem;">
-            <div class="card wizard-card" style="padding: 2.5rem; border-color: rgba(100, 184, 173, 0.4); box-shadow: 0 0 50px rgba(100, 184, 173, 0.15);">
-              <h4 style="color: var(--teal); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;">
-                [ Assessment Insight ]
+          <!-- Floating Result Insight HUD Card -->
+          <div id="insight-card-container">
+            <div class="card wizard-card" style="border-color: var(--border-cyan); box-shadow: 0 0 50px rgba(0, 240, 255, 0.25);">
+              <h4 style="color: var(--electric-cyan); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.8rem;">
+                [ ASSESSMENT INSIGHT ]
               </h4>
               
-              <h2 id="final-severity-title" style="font-size: 2.2rem; font-weight: 700; color: #f8f4eb; margin-bottom: 0.5rem; line-height: 1.1;">
+              <h2 id="final-severity-title" style="font-family: var(--font-display); font-size: 2.1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; line-height: 1.1;">
                 Analyzing...
               </h2>
               
-              <p id="final-severity-desc" style="color: #b9c4cc; font-size: 0.95rem; line-height: 1.6;">
-                Awaiting multimodal fusion completion.
+              <p id="final-severity-desc" style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6;">
+                Synthesizing cross-attention tensors across linguistic and physiological modalities...
               </p>
               
-              <div style="margin-top: 2rem; border-top: 1px solid rgba(231,213,172,0.16); padding-top: 1.5rem;">
-                 <button class="btn btn-secondary" onclick="location.reload()" style="width: 100%; font-size: 0.85rem;">← Start New Signal Capture</button>
+              <div style="margin-top: 1.8rem; border-top: 1px solid rgba(0, 240, 255, 0.15); padding-top: 1.4rem;">
+                <button class="btn btn-secondary" onclick="location.reload()" style="width: 100%; font-size: 0.8rem;">← Start New Assessment</button>
               </div>
             </div>
           </div>
@@ -735,7 +1475,475 @@
     </div>
   </main>
 
-  <!-- Scripts -->
+  <!-- ================= INLINE HELPER SCRIPTS ================= -->
+  <script>
+    // 1. Direct Sample Ingestion Helper
+    function loadSampleDirect(type) {
+      var samples = {
+        normal: "Today was a productive and balanced day. I went for a morning walk, completed my tasks without excessive anxiety, and feel optimistic about the coming week.",
+        mild: "Feeling a bit worn down and tired this week. The workload is noticeable and I am finding it slightly difficult to unwind in the evenings, but still managing daily routines.",
+        moderate: "Everything feels noticeably heavy lately. I wake up unrefreshed no matter how long I sleep, disconnected from my usual hobbies, and struggle to find joy in everyday things.",
+        severe: "Honestly, everything just feels completely exhausted and empty. Getting out of bed takes immense effort. I feel an overwhelming sense of hopelessness and detached from everyone."
+      };
+      var area = document.getElementById('social-text');
+      if (area && samples[type]) {
+        area.value = samples[type];
+        area.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    // 2. Sensor Live Status Dots & Value Formatting
+    (function() {
+      var sensors = [
+        {id:'hr',       low:60,   high:90,   inv:true },
+        {id:'hrv',      low:30,   high:60,   inv:false},
+        {id:'eda',      low:2.0,  high:6.0,  inv:true },
+        {id:'temp',     low:32.0, high:35.0, inv:false},
+        {id:'resp',     low:12,   high:18,   inv:true },
+        {id:'sleep',    low:6.0,  high:8.5,  inv:false},
+        {id:'steps',    low:4000, high:10000,inv:false},
+        {id:'sedentary',low:5.0,  high:9.0,  inv:true }
+      ];
+
+      function updateDot(s, val) {
+        var dot = document.getElementById('dot-' + s.id);
+        if (!dot) return;
+        var v = parseFloat(val);
+        var isNormal = s.inv ? (v >= s.low && v <= s.high) : (v >= s.low);
+        var isWarning = s.inv ? (v > s.high) : (v < s.low);
+
+        if (isNormal) {
+          dot.style.background = '#00f0ff';
+          dot.style.boxShadow = '0 0 8px 2px rgba(0,240,255,0.7)';
+        } else if (isWarning) {
+          dot.style.background = '#f43f5e';
+          dot.style.boxShadow = '0 0 8px 2px rgba(244,63,94,0.7)';
+        } else {
+          dot.style.background = '#a855f7';
+          dot.style.boxShadow = '0 0 8px 2px rgba(168,85,247,0.7)';
+        }
+      }
+
+      sensors.forEach(function(s) {
+        var slider = document.getElementById('input-' + s.id);
+        var num = document.getElementById('num-' + s.id);
+        var valEl = document.getElementById('val-' + s.id);
+
+        if (slider) {
+          slider.addEventListener('input', function() {
+            if (num) num.value = slider.value;
+            if (valEl) {
+              var unit = valEl.innerText.replace(/^[0-9.]+\s*/, '');
+              valEl.innerText = slider.value + ' ' + unit;
+            }
+            updateDot(s, slider.value);
+          });
+          updateDot(s, slider.value);
+        }
+
+        if (num) {
+          num.addEventListener('input', function() {
+            if (slider) {
+              slider.value = num.value;
+              slider.dispatchEvent(new Event('input'));
+            }
+          });
+        }
+      });
+    })();
+
+    // 3. SCIENTIFIC INSTRUMENT CURSOR WITH SATELLITE TRAIL
+    (function () {
+      const cursorDot = document.getElementById('cursor-dot');
+      const cursorAura = document.getElementById('cursor-aura');
+      const sat1 = document.getElementById('sat-1');
+      const sat2 = document.getElementById('sat-2');
+      const sat3 = document.getElementById('sat-3');
+
+      if (!cursorDot || !cursorAura) return;
+
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+      let auraX = mouseX, auraY = mouseY;
+      let time = 0;
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursorDot.style.left = `${mouseX}px`;
+        cursorDot.style.top = `${mouseY}px`;
+      }, { passive: true });
+
+      function renderCursor() {
+        auraX += (mouseX - auraX) * 0.15;
+        auraY += (mouseY - auraY) * 0.15;
+        cursorAura.style.left = `${auraX}px`;
+        cursorAura.style.top = `${auraY}px`;
+
+        time += 0.05;
+        const r1 = 26, r2 = 32, r3 = 38;
+        if (sat1) {
+          sat1.style.left = `${auraX + Math.cos(time) * r1}px`;
+          sat1.style.top = `${auraY + Math.sin(time) * r1}px`;
+        }
+        if (sat2) {
+          sat2.style.left = `${auraX + Math.cos(time + 2.1) * r2}px`;
+          sat2.style.top = `${auraY + Math.sin(time + 2.1) * r2}px`;
+        }
+        if (sat3) {
+          sat3.style.left = `${auraX + Math.cos(time + 4.2) * r3}px`;
+          sat3.style.top = `${auraY + Math.sin(time + 4.2) * r3}px`;
+        }
+
+        requestAnimationFrame(renderCursor);
+      }
+      requestAnimationFrame(renderCursor);
+
+      const interactives = 'a, button, input, textarea, .btn, .preset-pill, .tool-btn-sample, .tool-btn-clear, .step-badge';
+      document.querySelectorAll(interactives).forEach(el => {
+        el.addEventListener('mouseenter', () => {
+          cursorDot.classList.add('hovering');
+          cursorAura.classList.add('hovering');
+        });
+        el.addEventListener('mouseleave', () => {
+          cursorDot.classList.remove('hovering');
+          cursorAura.classList.remove('hovering');
+        });
+      });
+    })();
+
+    // 4. ONENOTE-STYLE QUANTUM LASER INK TRAIL
+    (function () {
+      const laserCanvas = document.getElementById('laser-canvas');
+      if (!laserCanvas) return;
+      const lctx = laserCanvas.getContext('2d');
+      let dpr = window.devicePixelRatio || 1;
+      let lWidth = window.innerWidth;
+      let lHeight = window.innerHeight;
+
+      function resizeLaserCanvas() {
+        dpr = window.devicePixelRatio || 1;
+        lWidth = window.innerWidth;
+        lHeight = window.innerHeight;
+        laserCanvas.width = Math.floor(lWidth * dpr);
+        laserCanvas.height = Math.floor(lHeight * dpr);
+        lctx.scale(dpr, dpr);
+      }
+      resizeLaserCanvas();
+      window.addEventListener('resize', resizeLaserCanvas);
+
+      const laserStrokes = [];
+      let currentStroke = null;
+      const laserSparks = [];
+      const LIFETIME = 1800;
+      let isMouseDown = false;
+      let lastMoveTime = 0;
+      let prevX = null;
+      let prevY = null;
+
+      window.addEventListener('mousedown', (e) => {
+        if (e.button === 0) isMouseDown = true;
+      });
+      window.addEventListener('mouseup', () => {
+        isMouseDown = false;
+      });
+
+              function isOverContent(px, py) {
+          try {
+            const el = document.elementFromPoint(px, py);
+            if (!el) return false;
+            return !!el.closest(
+              'p, h1, h2, h3, h4, h5, h6, span, a, button, input, textarea, label, table, td, th, ' +
+              '.card, .wizard-card, .capsule-nav, .text-shield, .hud-sensor-card, .review-block, ' +
+              '.preset-selector-bar, .sample-pill-bar, .sensor-telemetry-panel, .feature-card, ' +
+              '.interactive-layer-display, .benchmark-table-wrapper, .nav-links-cluster, .nav-brand, ' +
+              '.hero-content, .hero-metric-pill, .dimension-card, .pipeline-step, .footer-container'
+            );
+          } catch(e) { return false; }
+        }
+
+        function addPoint(x, y) {
+          if (isOverContent(x, y)) {
+            currentStroke = null;
+            prevX = null;
+            prevY = null;
+            return;
+          }
+        const now = performance.now();
+        const intensity = isMouseDown ? 1.5 : 1.0;
+
+        if (now - lastMoveTime > 90 || !currentStroke) {
+          currentStroke = [];
+          laserStrokes.push(currentStroke);
+          prevX = x;
+          prevY = y;
+        }
+
+        if (prevX !== null && prevY !== null) {
+          const dist = Math.hypot(x - prevX, y - prevY);
+          if (dist > 5) {
+            const steps = Math.min(Math.floor(dist / 4), 16);
+            for (let s = 1; s < steps; s++) {
+              currentStroke.push({
+                x: prevX + (x - prevX) * (s / steps),
+                y: prevY + (y - prevY) * (s / steps),
+                time: now,
+                radius: (2.5 + Math.random() * 1.5) * intensity
+              });
+            }
+          }
+        }
+
+        currentStroke.push({
+          x: x,
+          y: y,
+          time: now,
+          radius: (3.0 + (isMouseDown ? 1.8 : 0)) * intensity
+        });
+
+        if (Math.random() < 0.28 || isMouseDown) {
+          const sparkCount = isMouseDown ? 3 : 1;
+          for (let k = 0; k < sparkCount; k++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 0.4 + Math.random() * 1.8;
+            laserSparks.push({
+              x: x,
+              y: y,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              time: now,
+              life: 500 + Math.random() * 400,
+              color: Math.random() > 0.4 ? '#00f0ff' : '#ffffff'
+            });
+          }
+        }
+
+        prevX = x;
+        prevY = y;
+        lastMoveTime = now;
+      }
+
+      window.addEventListener('mousemove', (e) => {
+        addPoint(e.clientX, e.clientY);
+      }, { passive: true });
+
+      function renderLaser() {
+        const now = performance.now();
+        lctx.clearRect(0, 0, lWidth, lHeight);
+
+        for (let sIdx = laserStrokes.length - 1; sIdx >= 0; sIdx--) {
+          const stroke = laserStrokes[sIdx];
+          while (stroke.length > 0 && now - stroke[0].time > LIFETIME) {
+            stroke.shift();
+          }
+          if (stroke.length === 0) {
+            laserStrokes.splice(sIdx, 1);
+            continue;
+          }
+
+          if (stroke.length < 2) continue;
+
+          for (let pIdx = 1; pIdx < stroke.length; pIdx++) {
+            const p0 = stroke[pIdx - 1];
+            const p1 = stroke[pIdx];
+            const age = now - p1.time;
+            const lifeFrac = Math.max(0, 1 - age / LIFETIME);
+            const fade = Math.pow(lifeFrac, 1.4);
+
+            if (fade <= 0.005) continue;
+
+            // Outer Bloom
+            lctx.beginPath();
+            lctx.moveTo(p0.x, p0.y);
+            lctx.lineTo(p1.x, p1.y);
+            lctx.lineCap = 'round';
+            lctx.lineJoin = 'round';
+            lctx.lineWidth = p1.radius * 3.4;
+            lctx.strokeStyle = `rgba(0, 240, 255, ${fade * 0.28})`;
+            lctx.shadowColor = '#00f0ff';
+            lctx.shadowBlur = 18;
+            lctx.stroke();
+
+            // Mid Cyan Glow
+            lctx.beginPath();
+            lctx.moveTo(p0.x, p0.y);
+            lctx.lineTo(p1.x, p1.y);
+            lctx.lineWidth = p1.radius * 1.8;
+            lctx.strokeStyle = `rgba(0, 240, 255, ${fade * 0.85})`;
+            lctx.shadowColor = '#00f0ff';
+            lctx.shadowBlur = 10;
+            lctx.stroke();
+
+            // Core White Hot Line
+            lctx.beginPath();
+            lctx.moveTo(p0.x, p0.y);
+            lctx.lineTo(p1.x, p1.y);
+            lctx.lineWidth = Math.max(1, p1.radius * 0.7);
+            lctx.strokeStyle = `rgba(255, 255, 255, ${fade * 0.95})`;
+            lctx.shadowBlur = 0;
+            lctx.stroke();
+          }
+        }
+
+        // Render laser sparks
+        for (let i = laserSparks.length - 1; i >= 0; i--) {
+          const sp = laserSparks[i];
+          const age = now - sp.time;
+          if (age > sp.life) {
+            laserSparks.splice(i, 1);
+            continue;
+          }
+          const sFade = 1 - age / sp.life;
+          sp.x += sp.vx;
+          sp.y += sp.vy;
+          sp.vy += 0.02;
+
+          lctx.beginPath();
+          lctx.arc(sp.x, sp.y, 1.4 * sFade, 0, Math.PI * 2);
+          lctx.fillStyle = sp.color === '#ffffff' ? `rgba(255,255,255,${sFade})` : `rgba(0,240,255,${sFade})`;
+          lctx.shadowColor = '#00f0ff';
+          lctx.shadowBlur = 6;
+          lctx.fill();
+        }
+
+        requestAnimationFrame(renderLaser);
+      }
+      requestAnimationFrame(renderLaser);
+    })();
+
+    // 5. THREE.JS 3D BACKGROUND PARTICLE UNIVERSE
+    (function () {
+      const canvas = document.getElementById('webgl-canvas');
+      if (!canvas || !window.THREE) return;
+
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x02040a, 0.0018);
+
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+      camera.position.set(0, 0, 100);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // Deep particle starfield
+      const particleCount = 2400;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+      const colors = new Float32Array(particleCount * 3);
+
+      const cyanColor = new THREE.Color(0x00f0ff);
+      const violetColor = new THREE.Color(0xa855f7);
+      const blueColor = new THREE.Color(0x3b82f6);
+
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 800;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 800;
+        positions[i * 3 + 2] = -60 - Math.random() * 600;
+
+        const mix = Math.random();
+        const col = mix < 0.45 ? cyanColor : (mix < 0.8 ? blueColor : violetColor);
+        colors[i * 3] = col.r;
+        colors[i * 3 + 1] = col.g;
+        colors[i * 3 + 2] = col.b;
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      function createPointTexture() {
+        const c = document.createElement('canvas');
+        c.width = 64; c.height = 64;
+        const cctx = c.getContext('2d');
+        const grad = cctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        grad.addColorStop(0, 'rgba(255,255,255,0.95)');
+        grad.addColorStop(0.35, 'rgba(0,240,255,0.6)');
+        grad.addColorStop(0.8, 'rgba(168,85,247,0.15)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        cctx.fillStyle = grad;
+        cctx.fillRect(0, 0, 64, 64);
+        const texture = new THREE.Texture(c);
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      const pointMaterial = new THREE.PointsMaterial({
+        size: 3.2,
+        vertexColors: true,
+        map: createPointTexture(),
+        transparent: true,
+        opacity: 0.65,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      const particleSystem = new THREE.Points(geometry, pointMaterial);
+      scene.add(particleSystem);
+
+      // Rotating Cybernetic Background Core (Deep z: -60 so UI cards remain super crisp)
+      const coreGroup = new THREE.Group();
+      scene.add(coreGroup);
+      coreGroup.position.set(0, 0, -60);
+
+      const icoGeom = new THREE.IcosahedronGeometry(26, 1);
+      const icoMat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.12
+      });
+      const icoMesh = new THREE.Mesh(icoGeom, icoMat);
+      coreGroup.add(icoMesh);
+
+      const ringGeom = new THREE.TorusGeometry(38, 0.3, 16, 80);
+      const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.18 });
+      const ringMat2 = new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.15 });
+      const torus1 = new THREE.Mesh(ringGeom, ringMat1);
+      const torus2 = new THREE.Mesh(ringGeom, ringMat2);
+      torus1.rotation.x = Math.PI / 3;
+      torus2.rotation.y = Math.PI / 3;
+      coreGroup.add(torus1);
+      coreGroup.add(torus2);
+
+      // Mouse Parallax
+      let targetRotX = 0, targetRotY = 0;
+      window.addEventListener('mousemove', (e) => {
+        const normX = (e.clientX / window.innerWidth) - 0.5;
+        const normY = (e.clientY / window.innerHeight) - 0.5;
+        targetRotX = normY * 0.25;
+        targetRotY = normX * 0.35;
+      }, { passive: true });
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      let clock = new THREE.Clock();
+      function animateWebGL() {
+        requestAnimationFrame(animateWebGL);
+        const elapsed = clock.getElapsedTime();
+
+        particleSystem.rotation.y = elapsed * 0.012;
+        particleSystem.rotation.x = elapsed * 0.006;
+
+        icoMesh.rotation.x = elapsed * 0.08;
+        icoMesh.rotation.y = elapsed * 0.12;
+        torus1.rotation.z = elapsed * 0.15;
+        torus2.rotation.x = -elapsed * 0.12;
+
+        camera.position.x += (targetRotY * 20 - camera.position.x) * 0.05;
+        camera.position.y += (-targetRotX * 20 - camera.position.y) * 0.05;
+        camera.lookAt(0, 0, 0);
+
+        renderer.render(scene, camera);
+      }
+      animateWebGL();
+    })();
+  </script>
+
+  <!-- External Workflow Scripts (Zero functional regression) -->
   <script src="js/emotional-signal-field.js"></script>
   <script src="js/fusion-pipeline.js"></script>
   <script src="js/assessment.js?v=2.8"></script>
